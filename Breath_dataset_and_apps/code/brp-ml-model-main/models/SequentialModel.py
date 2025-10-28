@@ -25,6 +25,9 @@ class SequentialModel(AbstractModel, ABC, metaclass=ABCMeta):
                 validation_data=(self.X_test, self.y_test),
             )
             history = history.history
+            import os
+            save_dir = f"models/saves/{sensor_type}"
+            os.makedirs(save_dir, exist_ok=True)
             with open(
                 f"models/saves/{sensor_type}/{self.__class__.__name__}.history", "a"
             ) as file:

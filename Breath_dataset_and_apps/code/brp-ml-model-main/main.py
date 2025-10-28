@@ -56,10 +56,15 @@ def evaluate_epochs():
         _model.compile()
         _model.fit(epochs=i, sensor_type=f"{SENSOR_NAME}")
         history.append((i, _model.evaluate()))
-
+    print('hej dziala wszytsko')
     print(*history)
+    
+    cala_historia = history.history['accuracy'][-1]#[[],[]]
+    #print(cala_historia)
+    print('hellofsjkdfhsfbshfbsjhfbsfjhbfjsbfjsbfjsfbjhsfbjsfbjshdfbjsdfbds')
 
     plot_evaluation_history(history)
+    print(max(cala_historia))
 
 
 if __name__ == "__main__":
@@ -73,10 +78,15 @@ if __name__ == "__main__":
     )
     # model.get_random_samples(1)
     model.compile()
+    evaluate_epochs()
     time_before = time.time()
-    model.fit(sensor_type=f"{SENSOR_NAME}", epochs=100)
+    print('hello')
+    model.fit(sensor_type=f"{SENSOR_NAME}", epochs=90)
+    
+    
     print(f"Training time: {time.time() - time_before}")
-    print(model.evaluate())
+    
+    
     # model = GRUModel()
     # model.load_data(
     #     filename=f"data/pretrained/{SENSOR_NAME}_sequence/{SENSOR_NAME}_concatenated.txt",

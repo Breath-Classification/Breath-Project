@@ -63,12 +63,10 @@ RUN pip install --upgrade pip setuptools wheel
 # Install requirements (will install NVIDIA pip packages too)
 RUN pip install --upgrade -r /workspace/requirements.txt
 
-# Create non-root user (optional but recommended)
-ARG USER=appuser
-ARG UID=1000
-RUN useradd -m -u ${UID} ${USER} || true
-USER ${USER}
-WORKDIR /home/${USER}/workspace
+
+WORKDIR /home/workspace
 
 # Default command: open a shell
-CMD ["bash"]
+
+CMD ["sleep", "infinity"]
+

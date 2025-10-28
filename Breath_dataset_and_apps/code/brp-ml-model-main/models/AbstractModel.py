@@ -175,6 +175,7 @@ class AbstractModel(metaclass=ABCMeta):
             interactive_plot(
                 self.X_test[:, 0], self.predict(X_test), self.y_test, title=title
             )
+        
 
     @abstractmethod
     def evaluate(self, X_test: np.ndarray = None, y_test: np.ndarray = None) -> float:
