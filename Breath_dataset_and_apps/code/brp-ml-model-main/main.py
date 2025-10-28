@@ -76,15 +76,16 @@ if __name__ == "__main__":
         filename=f"data/pretrained/{SENSOR_NAME}_sequence/{SENSOR_NAME}_concatenated.txt",
         sensor_type=f"{SENSOR_NAME}",
     )
+    evaluate_data_set_size()
     # model.get_random_samples(1)
-    model.compile()
-    evaluate_epochs()
-    time_before = time.time()
-    print('hello')
-    model.fit(sensor_type=f"{SENSOR_NAME}", epochs=90)
+    #model.compile()
+    #evaluate_epochs()
+    #time_before = time.time()
+    #print('hello')
+    #model.fit(sensor_type=f"{SENSOR_NAME}", epochs=90)
     
     
-    print(f"Training time: {time.time() - time_before}")
+    #print(f"Training time: {time.time() - time_before}")
     
     
     # model = GRUModel()
@@ -98,8 +99,8 @@ if __name__ == "__main__":
     # model.fit(sensor_type=f"{SENSOR_NAME}", epochs=100)
     # print(f"Training time: {time.time() - time_before}")
     # model.load(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
-    model.save(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
-    model.confusion_matrix(model.X_test, model.y_test, name=f"{SENSOR_NAME}_test")
-    model.plot_prediction(model.X_test, name=f"{SENSOR_NAME}_test")
-    plot_history(f"models/saves/{SENSOR_NAME}/GRUModel.history")
+    #model.save(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
+    #model.confusion_matrix(model.X_test, model.y_test, name=f"{SENSOR_NAME}_test")
+    #model.plot_prediction(model.X_test, name=f"{SENSOR_NAME}_test")
+    #plot_history(f"models/saves/{SENSOR_NAME}/GRUModel.history")
     # plot_test_data(SENSOR_NAME, normalize_data=True)
