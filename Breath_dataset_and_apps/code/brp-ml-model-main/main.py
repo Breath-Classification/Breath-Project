@@ -39,7 +39,8 @@ def evaluate_data_set_size():
         plt.xlabel('Bins')
         plt.ylabel('Number of Tags')
         plt.title('Tag Distribution Across Bins')
-        plt.show()
+        plt.savefig('test.png')
+        
 
 
 def evaluate_epochs():
