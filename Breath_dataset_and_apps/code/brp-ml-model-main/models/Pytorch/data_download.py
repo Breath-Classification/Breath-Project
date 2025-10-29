@@ -20,7 +20,7 @@ class SequenceDataset(Dataset):
         # 2️⃣ Rozdziel X i y
         self.X = data[:, :-1]
         self.y = data[:, -1].astype(int)  # upewnij się, że y jest int dla CrossEntropyLoss
-        bins = [0, 25, 50, 75, 10000]  # 4 klasy: 0-24, 25-49, 50-74, 75-100
+        bins = [-2, -0.5, 0.5, 2, 10000]  # 4 klasy: 0-24, 25-49, 50-74, 75-100
         self.y = np.digitize(self.y, bins) - 1
 
         # 3️⃣ Jeśli expand_dims=True, dodaj wymiar

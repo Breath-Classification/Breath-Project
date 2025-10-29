@@ -1,5 +1,5 @@
 # Otwieramy plik i wczytujemy wszystkie linie
-with open("acc_normal.txt", "r", encoding="utf-8") as f:
+with open("acc_normal_record_15-03-2024.txt", "r", encoding="utf-8") as f:
     lines = f.readlines()
 
 # Obliczamy punkt podziału (np. 80%)
