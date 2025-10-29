@@ -13,10 +13,11 @@ class GruModel(nn.Module):
         
         self.gru = nn.GRU(input_size=input_shape, hidden_size=hidden_units, batch_first=True)
         self.relu = nn.ReLU()
-        self.Dropout = nn.Dropout(0.5)
+        self.dropout1 = nn.Dropout(0.5)
         self.fc1 = nn.Linear(hidden_units, 32)
         self.tanh =nn.Tanh()
         self.fc2 = nn.Linear(32, output_shape)
+        
         
         
         
@@ -29,8 +30,9 @@ class GruModel(nn.Module):
         x = self.dropout1(x)
         x = self.fc1(x)
         x = self.tanh(x)
-        x = self.dropout2(x)
+        x= self.dropout1(x)
         x = self.fc2(x)
+        
         
  
         return x

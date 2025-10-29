@@ -11,15 +11,13 @@ from data_download import SequenceDataset
 NUM_WORKERS = os.cpu_count()
 
 def create_dataloaders(
-    train_dir: str, 
-    test_dir: str, 
     transform: transforms.Compose, 
     batch_size: int, 
     num_workers: int=NUM_WORKERS
 ):
 
-  train_data = SequenceDataset("plik.txt")
-  test_data = SequenceDataset("plik2.txt")
+  train_data = SequenceDataset("../../data/pretrained/acc/train.txt")
+  test_data = SequenceDataset("../../data/pretrained/acc/test.txt")
   # Turn images into data loaders
   train_dataloader = DataLoader(
       train_data,

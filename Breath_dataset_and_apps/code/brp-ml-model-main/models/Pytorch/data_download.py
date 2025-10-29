@@ -20,6 +20,8 @@ class SequenceDataset(Dataset):
         # 2️⃣ Rozdziel X i y
         self.X = data[:, :-1]
         self.y = data[:, -1].astype(int)  # upewnij się, że y jest int dla CrossEntropyLoss
+        bins = [0, 25, 50, 75, 10000]  # 4 klasy: 0-24, 25-49, 50-74, 75-100
+        self.y = np.digitize(self.y, bins) - 1
 
         # 3️⃣ Jeśli expand_dims=True, dodaj wymiar
         if expand_dims:
@@ -28,7 +30,7 @@ class SequenceDataset(Dataset):
         # 4️⃣ Zamień na tensory PyTorch
         self.X = torch.tensor(self.X, dtype=torch.float32)
         self.y = torch.tensor(self.y, dtype=torch.long)
-        return self.X, self.y
+   
 
     def __len__(self):
         # 5️⃣ Ile jest próbek?
