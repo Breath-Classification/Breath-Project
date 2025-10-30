@@ -16,8 +16,8 @@ def create_dataloaders(
     num_workers: int=NUM_WORKERS
 ):
 
-  train_data = SequenceDataset("../../data/pretrained/acc/train.txt")
-  test_data = SequenceDataset("../../data/pretrained/acc/test.txt")
+  train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt")
+  test_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_test.txt")
   # Turn images into data loaders
   train_dataloader = DataLoader(
       train_data,

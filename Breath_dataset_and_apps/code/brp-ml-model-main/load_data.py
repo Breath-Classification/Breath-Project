@@ -2,7 +2,7 @@ import csv
 import re
 from os import mkdir
 from os.path import exists
-
+from enum import Enum
 
 def load_raw_data(filename: str) -> tuple[list[float], list[float]]:
     numbers = []
@@ -130,3 +130,9 @@ def prepare_data_for_training(sensor) -> None:
             #     f"{directory2}/{sensor_type}_sequence/{sensor_type}" + data,
             #     f"{directory}/{sensor_type}_sequence/{sensor_type}_concatenated.txt",
             # )
+class SensorType(Enum):
+    TENSOMETER = {"name": "tens", "size": 6}
+    ACCELEROMETER = {"name": "acc", "size": 12}
+    WIT_ACCELEROMETER = {"name": "acc", "size": 12}
+if __name__ =="__main__":
+    prepare_data_for_training(SensorType.TENSOMETER)

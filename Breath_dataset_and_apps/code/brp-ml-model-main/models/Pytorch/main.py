@@ -20,7 +20,7 @@ X_batch, y_batch = next(iter(train))
 print("Batch shapes:", X_batch.shape, y_batch.shape)
 input_shape = X_batch.shape[2]  # liczba cech (2)
 hidden_units = 64
-output_shape = 3
+output_shape = 4
 
 model = GruModel(input_shape=input_shape,hidden_units=hidden_units,output_shape=output_shape)
 
@@ -42,12 +42,13 @@ with torch.no_grad():
 
 
 
-i=0
+i=-1
 for X_batch, y_batch in train:
-    if(i<=5):
+    if(i<=0):
         print("🔹 X_batch shape:", X_batch.shape)
         print("🔹 y_batch shape:", y_batch.shape)
         print("X_batch example:", X_batch[0])
         print("y_batch example:", y_batch[0])
+        i=i+1
     else:
         break  # tylko pierwszy batch, żeby nie wypisywać wszystkiego
