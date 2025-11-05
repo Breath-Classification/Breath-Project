@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 #  plot so it can be used in this test using predicted
 #  data from model and X_test, y_test fields
 
-SENSOR = SensorType.WIT_ACCELEROMETER
+SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 
 def evaluate_data_set_size():
@@ -77,15 +77,15 @@ if __name__ == "__main__":
         sensor_type=f"{SENSOR_NAME}",
     )
     evaluate_data_set_size()
-    # model.get_random_samples(1)
-    #model.compile()
+    model.get_random_samples(1)
+    model.compile()
     #evaluate_epochs()
-    #time_before = time.time()
-    #print('hello')
-    #model.fit(sensor_type=f"{SENSOR_NAME}", epochs=90)
+    time_before = time.time()
+    print('hello')
+    model.fit(sensor_type=f"{SENSOR_NAME}", epochs=90)
     
     
-    #print(f"Training time: {time.time() - time_before}")
+    print(f"Training time: {time.time() - time_before}")
     
     
     # model = GRUModel()

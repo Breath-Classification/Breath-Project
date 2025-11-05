@@ -46,3 +46,44 @@ class SequenceDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
+class BlockDataset(Dataset):
+    def __init__(self, filename, block_size=14, convert_to_categorical=False):
+        """
+        Ładuje dane i grupuje sekwencje w bloki po kilka sekwencji.
+        Każdy blok to fragment danych o długości block_size.
+        """
+
+        # Wczytaj dane
+        data = []
+        with open(filename, "r") as f:
+            for line in f.readlines():
+                data.append([float(v) for v in line.strip().split(",")])
+        data = np.array(data)
+
+        X = data[:, :-1]
+        y = data[:, -1]
+
+        # Tworzenie bloków
+        blocks_X, blocks_y = [], []
+        for i in range(len(X) - block_size + 1):
+            blocks_X.append(X[i:i + block_size])
+            # Dla etykiety możesz wziąć np. ostatnią lub dominującą
+            blocks_y.append(y[i + block_size - 1])
+
+        self.X = np.array(blocks_X)  # shape: (num_blocks, block_size, seq_len)
+        self.y = np.array(blocks_y)
+
+        # One-hot encoding (opcjonalnie)
+        if convert_to_categorical:
+            num_classes = len(np.unique(self.y))
+            self.y = to_categorical(self.y, num_classes=num_classes)
+
+        # Na tensory PyTorch
+        self.X = torch.tensor(self.X, dtype=torch.float32)
+        self.y = torch.tensor(self.y, dtype=torch.long if not convert_to_categorical else torch.float32)
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.X[idx], self.y[idx]

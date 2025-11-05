@@ -30,7 +30,7 @@ class GruModel(nn.Module):
         x = self.dropout1(x)
         x = self.fc1(x)
         x = self.tanh(x)
-        x= self.dropout1(x)
+        x = self.dropout1(x)
         x = self.fc2(x)
         
         

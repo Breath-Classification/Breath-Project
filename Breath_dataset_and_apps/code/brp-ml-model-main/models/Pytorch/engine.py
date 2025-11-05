@@ -7,6 +7,7 @@ import torch
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 
+
 def train_step(model: torch.nn.Module, 
                dataloader: torch.utils.data.DataLoader, 
                loss_fn: torch.nn.Module, 
@@ -156,12 +157,16 @@ def train(model: torch.nn.Module,
                   test_acc: [0.3400, 0.2973]} 
   """
   # Create empty results dictionary
-  results = {"train_loss": [],
+  results = {
+    "epoch":[],
+    "train_loss": [],
       "train_acc": [],
       "test_loss": [],
-      "test_acc": []
+      "test_acc": [],
+      "max_test_acc":[]
   }
   
+  maksimum_test =0
   # Loop through training and testing steps for a number of epochs
   for epoch in tqdm(range(epochs)):
       train_loss, train_acc = train_step(model=model,
@@ -175,19 +180,28 @@ def train(model: torch.nn.Module,
           device=device)
       
       # Print out what's happening
+      if(maksimum_test<train_acc):
+          maksimum_test=train_acc
+          
       print(
           f"Epoch: {epoch+1} | "
           f"train_loss: {train_loss:.4f} | "
           f"train_acc: {train_acc:.4f} | "
           f"test_loss: {test_loss:.4f} | "
-          f"test_acc: {test_acc:.4f}"
+          f"test_acc: {test_acc:.4f} | "
+          f"max_test_acc: {maksimum_test:.4f} | "
       )
-
+    
+          
       # Update results dictionary
+      
+      results["epoch"].append(epoch+1)
       results["train_loss"].append(train_loss)
       results["train_acc"].append(train_acc)
       results["test_loss"].append(test_loss)
       results["test_acc"].append(test_acc)
+      results["max_test_acc"].append(maksimum_test)
 
   # Return the filled results at the end of the epochs
+  
   return results

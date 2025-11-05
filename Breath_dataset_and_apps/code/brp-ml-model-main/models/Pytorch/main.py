@@ -5,10 +5,10 @@ import torch
 import engine
 
 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 64
 LEARNING_RATE = 0.001
 
-BATCHES = 32
+BATCHES = 64
 data_transform = transforms.Compose([
   transforms.Resize((64, 64)),
   transforms.ToTensor()
