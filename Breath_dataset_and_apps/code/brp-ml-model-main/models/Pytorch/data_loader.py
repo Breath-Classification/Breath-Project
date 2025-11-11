@@ -14,12 +14,13 @@ NUM_WORKERS = os.cpu_count()
 def create_dataloaders(
     transform: transforms.Compose, 
     batch_size: int, 
-    num_workers: int=NUM_WORKERS
+    block_size: int,
+    num_workers: int=0
 ):
 
-  train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt")
-  test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt")
-  # Turn images into data loaders
+  train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
+  test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
+
   train_dataloader = DataLoader(
       train_data,
       batch_size=batch_size,
@@ -30,7 +31,7 @@ def create_dataloaders(
   test_dataloader = DataLoader(
       test_data,
       batch_size=batch_size,
-      shuffle=False, # don't need to shuffle test data
+      shuffle=False, 
       num_workers=num_workers,
       pin_memory=True,
   )

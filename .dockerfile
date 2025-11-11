@@ -63,7 +63,7 @@ RUN pip install --upgrade pip setuptools wheel
 # Install requirements (will install NVIDIA pip packages too)
 RUN pip install --upgrade -r /workspace/requirements.txt
 
-
+RUN pip install wandb
 WORKDIR /home/workspace
 
 # Default command: open a shell
