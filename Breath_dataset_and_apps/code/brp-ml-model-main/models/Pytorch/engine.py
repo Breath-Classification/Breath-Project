@@ -98,7 +98,7 @@ def train(model: torch.nn.Module,
   maksimum_test_acc =0
   maksimum_train_acc =0
   #scheduler = StepLR(optimizer, step_size=epochs//2, gamma=0.5)
-  scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+  #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
   for epoch in tqdm(range(epochs)):
       train_loss, train_acc = train_step(model=model,
                                           dataloader=train_dataloader,
@@ -109,7 +109,7 @@ def train(model: torch.nn.Module,
           dataloader=test_dataloader,
           loss_fn=loss_fn,
           device=device)
-      scheduler.step(test_loss)
+      #scheduler.step(test_loss)
       wandb.log({
           "epoch":epoch,
           "test_accuracy":test_acc,

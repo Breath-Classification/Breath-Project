@@ -14,17 +14,18 @@ class SensorType(Enum):
 
 if __name__ == "__main__":
 
-    NUM_EPOCHS = 64
+    NUM_EPOCHS = 128
     LEARNING_RATE = 0.001
     BATCHES = 32
-    BLOCK_SIZE=[14]
+    BLOCK_SIZE=[12,14,16,17,18,20,22,24,26]
     SENSOR = SensorType.TENSOMETER
     SENSOR_NAME = SENSOR.value["name"]
     
     for i, block in enumerate(BLOCK_SIZE):
         wandb.init(  #dane konkretnej proby
                 project="GRU-optymalization",
-                name=f" scheduler progressive Block_{block}",
+                name=f"128 epochs blocks half label{block}",
+                group="Testy",
                 config={
                     "epochs": NUM_EPOCHS,
                     "batch_size": BATCHES,

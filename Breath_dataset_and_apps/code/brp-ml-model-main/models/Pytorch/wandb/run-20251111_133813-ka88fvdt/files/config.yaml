@@ -1,0 +1,73 @@
+_wandb:
+    value:
+        cli_version: 0.22.3
+        e:
+            m9xlhflyp5jghjwnfvkzgc56nsisrn4d:
+                codePath: Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/main.py
+                codePathLocal: main.py
+                cpu_count: 6
+                cpu_count_logical: 12
+                disk:
+                    /:
+                        total: "982240026624"
+                        used: "82785656832"
+                email: s203668@student.pg.edu.pl
+                executable: /usr/bin/python
+                git:
+                    commit: bd3b94017220cb285bf25975ae907276f15d0c4f
+                    remote: https://github.com/Breath-Classification/Breath-Project.git
+                host: 817d7e527c50
+                memory:
+                    total: "32809463808"
+                os: Linux-6.14.0-29-generic-x86_64-with-glibc2.35
+                program: /workspaces/Breath-Project/Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/main.py
+                python: CPython 3.11.14
+                root: /workspaces/Breath-Project/Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch
+                startedAt: "2025-11-11T13:38:13.634115Z"
+                writerId: m9xlhflyp5jghjwnfvkzgc56nsisrn4d
+        m: []
+        python_version: 3.11.14
+        t:
+            "1":
+                - 1
+                - 2
+                - 3
+                - 41
+            "2":
+                - 1
+                - 2
+                - 3
+                - 41
+            "3":
+                - 2
+                - 13
+                - 16
+                - 62
+            "4": 3.11.14
+            "5": 0.22.3
+            "12": 0.22.3
+            "13": linux-x86_64
+batch_size:
+    value: 32
+block_size:
+    value:
+        - 6
+        - 8
+        - 10
+        - 12
+        - 14
+        - 16
+        - 18
+        - 20
+epochs:
+    value: 64
+loss_fn:
+    value: CrossEntropyLoss
+lr:
+    value: 0.001
+model:
+    value: GRU
+optimizer:
+    value: Adam
+sensor:
+    value: tens

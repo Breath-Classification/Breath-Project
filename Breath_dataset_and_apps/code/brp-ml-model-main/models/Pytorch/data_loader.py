@@ -9,6 +9,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from data_download import SequenceDataset
 from data_download import BlockDataset
+from data_download import BlockDatasetHalf
 NUM_WORKERS = os.cpu_count()
 
 def create_dataloaders(
@@ -18,8 +19,8 @@ def create_dataloaders(
     num_workers: int=0
 ):
 
-  train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
-  test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
+  train_data = BlockDatasetHalf("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
+  test_data = BlockDatasetHalf("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
   
   #train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt")
   #test_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_test.txt")
