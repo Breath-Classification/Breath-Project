@@ -1,9 +1,9 @@
 
 """
-Contains functions for training and testing a PyTorch model.
+Contains functions for training and testing a PyTorch model.  https://github.com/mrdbourke/pytorch-deep-learning
 """
 import torch
-
+from torch.optim.lr_scheduler import StepLR
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 import wandb
@@ -14,38 +14,28 @@ def train_step(model: torch.nn.Module,
                optimizer: torch.optim.Optimizer,
                device: torch.device) -> Tuple[float, float]:
 
-  # Put model in train mode
   model.train()
   
-  # Setup train loss and train accuracy values
   train_loss, train_acc = 0, 0
   
-  # Loop through data loader data batches
   for batch, (X, y) in enumerate(dataloader):
-      # Send data to target device
+
       X, y = X.to(device), y.to(device)
 
-      # 1. Forward pass
       y_pred = model(X)
 
-      # 2. Calculate  and accumulate loss
       loss = loss_fn(y_pred, y)
       train_loss += loss.item() 
 
-      # 3. Optimizer zero grad
       optimizer.zero_grad()
 
-      # 4. Loss backward
       loss.backward()
 
-      # 5. Optimizer step
       optimizer.step()
 
-      # Calculate and accumulate accuracy metric across all batches
       y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
       train_acc += (y_pred_class == y).sum().item()/len(y_pred)
 
-  # Adjust metrics to get average loss and accuracy per batch 
   train_loss = train_loss / len(dataloader)
   train_acc = train_acc / len(dataloader)
   return train_loss, train_acc
@@ -54,32 +44,30 @@ def test_step(model: torch.nn.Module,
               dataloader: torch.utils.data.DataLoader, 
               loss_fn: torch.nn.Module,
               device: torch.device) -> Tuple[float, float]:
-  
-  # Put model in eval mode
+
   model.eval() 
   
-  # Setup test loss and test accuracy values
+
   test_loss, test_acc = 0, 0
   
-  # Turn on inference context manager
+
   with torch.inference_mode():
-      # Loop through DataLoader batches
+     
       for batch, (X, y) in enumerate(dataloader):
-          # Send data to target device
+         
           X, y = X.to(device), y.to(device)
   
-          # 1. Forward pass
+          
           test_pred_logits = model(X)
 
-          # 2. Calculate and accumulate loss
+      
           loss = loss_fn(test_pred_logits, y)
           test_loss += loss.item()
           
-          # Calculate and accumulate accuracy
+         
           test_pred_labels = test_pred_logits.argmax(dim=1)
           test_acc += ((test_pred_labels == y).sum().item()/len(test_pred_labels))
           
-  # Adjust metrics to get average loss and accuracy per batch 
   test_loss = test_loss / len(dataloader)
   test_acc = test_acc / len(dataloader)
   return test_loss, test_acc
@@ -92,7 +80,6 @@ def train(model: torch.nn.Module,
           epochs: int,
           device: torch.device) -> Dict[str, List]:
 
-  # Create empty results dictionary
   results = {
     "epoch":[],
     "train_loss": [],
@@ -110,8 +97,8 @@ def train(model: torch.nn.Module,
   
   maksimum_test_acc =0
   maksimum_train_acc =0
- 
-  # Loop through training and testing steps for a number of epochs
+  #scheduler = StepLR(optimizer, step_size=epochs//2, gamma=0.5)
+  scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
   for epoch in tqdm(range(epochs)):
       train_loss, train_acc = train_step(model=model,
                                           dataloader=train_dataloader,
@@ -122,7 +109,7 @@ def train(model: torch.nn.Module,
           dataloader=test_dataloader,
           loss_fn=loss_fn,
           device=device)
-     
+      scheduler.step(test_loss)
       wandb.log({
           "epoch":epoch,
           "test_accuracy":test_acc,
@@ -131,7 +118,6 @@ def train(model: torch.nn.Module,
           "train_loss":train_loss
         })
       
-      # Print out what's happening
       if(maksimum_test_acc<test_acc):
           maksimum_test_acc=test_acc
       if(maksimum_train_acc<train_acc):
@@ -153,7 +139,6 @@ def train(model: torch.nn.Module,
       )
     
           
-      # Update results dictionary
       
       results["epoch"].append(epoch+1)
       results["train_loss"].append(train_loss)
@@ -162,7 +147,6 @@ def train(model: torch.nn.Module,
       results["test_acc"].append(test_acc)
       results["max_test_acc"].append(maksimum_test_acc)
 
-  # Return the filled results at the end of the epochs
   wandb.summary.update({
     "max_test_acc":best_scores["max_test_acc"],
     "max_train_acc":best_scores["max_train_acc"],

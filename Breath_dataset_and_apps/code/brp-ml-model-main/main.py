@@ -9,7 +9,7 @@ from models.LSTMModel import LSTMModel
 from scripts.load_data import prepare_data_for_training
 from scripts.plot import plot_evaluation_history, plot_history, plot_test_data
 import matplotlib.pyplot as plt
-
+import wandb
 # TODO: Change logic in labelling or any different
 #  plot so it can be used in this test using predicted
 #  data from model and X_test, y_test fields
@@ -68,6 +68,19 @@ def evaluate_epochs():
 
 
 if __name__ == "__main__":
+    wandb.init(  #dane konkretnej proby
+                project="GRU-optymalization",
+                name="Sequence ",
+                config={
+                    "epochs": 64,
+                    "lr": 0.001,
+                    "model":"GRU",
+                    "sensor":SENSOR_NAME,
+                    "loss_fn":"CrossEntropyLoss",
+                    "optimizer":"Adam"
+                }
+            )
+    print("wandb.run after init:", wandb.run)
     prepare_data_for_training(sensor=SENSOR)
     # evaluate_data_set_size()
     scores = []
@@ -82,7 +95,7 @@ if __name__ == "__main__":
     #evaluate_epochs()
     time_before = time.time()
     print('hello')
-    model.fit(sensor_type=f"{SENSOR_NAME}", epochs=90)
+    model.fit(sensor_type=f"{SENSOR_NAME}", epochs=64)
     
     
     print(f"Training time: {time.time() - time_before}")
