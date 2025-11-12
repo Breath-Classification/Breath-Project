@@ -7,7 +7,8 @@ import engine
 import Seq2SeqEngine
 import wandb 
 from enum import Enum
-
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
 class SensorType(Enum):
     TENSOMETER = {"name": "tens", "size": 6}
     ACCELEROMETER = {"name": "acc", "size": 12}
@@ -16,18 +17,18 @@ class SensorType(Enum):
 
 if __name__ == "__main__":
 
-    NUM_EPOCHS = 200
+    NUM_EPOCHS = 100
     LEARNING_RATE = 0.001
     BATCHES = 32
     BLOCK_SIZE=[12]
     SENSOR = SensorType.TENSOMETER
     SENSOR_NAME = SENSOR.value["name"]
-    TARGET =3
+    TARGET =2
     
     for i, block in enumerate(BLOCK_SIZE):
         wandb.init(  #dane konkretnej proby
                 project="GRU-optymalization",
-                name=f"200 epochs block={block} target={TARGET}",
+                name=f"100 epochs block={block} target={TARGET}",
                 group="Seq2Seq",
                 config={
                     "epochs": NUM_EPOCHS,
@@ -62,8 +63,29 @@ if __name__ == "__main__":
                                     lr=LEARNING_RATE)
 
         Seq2SeqEngine.train(model,train,test,optimizer,loss_fn,NUM_EPOCHS,"cpu")
-        wandb.finish()
         
+        wandb.finish()
+    model.eval()
+    with torch.no_grad():
+        y_pred = model(X_batch)  # (batch, seq_len, output_dim)
+        target_size = y_batch.shape[1]
+        y_pred = y_pred[:, -target_size:, :]  # wybieramy ostatnie target_size kroków
+
+    # Wybieramy np. pierwszą próbkę z batcha
+    for i in range(32):
+        y_true_sample = y_batch[i].numpy()
+        y_pred_sample = y_pred[i].numpy()  # (target_size, output_dim) jeśli output_dim=1
+
+        # Jeśli output_dim=1 → spłaszczamy
+        
+        y_pred_sample = torch.tensor(y_pred_sample)
+        probs = F.softmax(y_pred_sample, dim=1)
+        pred_classes = torch.argmax(probs, dim=1)
+        print("probka ",i)
+        print("prawidziwe")
+        print(y_true_sample)
+        print("przewidywania")
+        print(pred_classes)
     """
     wandb.init(  #dane konkretnej proby
                 project="GRU-optymalization",
