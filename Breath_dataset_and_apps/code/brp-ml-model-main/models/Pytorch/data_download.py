@@ -101,3 +101,37 @@ class BlockDatasetHalf(Dataset): #dane ladowane blokowo
 
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
+
+class BlockTargetDataset(Dataset): #dane ladowane blokowo i z wykorzystaniem wielu y
+    def __init__(self, filename, block_size, target_size, convert_to_categorical=False):
+        
+        data = []
+        with open(filename, "r") as f:
+            for line in f.readlines():
+                data.append([float(v) for v in line.strip().split(",")])
+        data = np.array(data)
+
+        X = data[:, :-1]
+        y = data[:, -1]
+
+        
+        blocks_X, blocks_y = [], []  #tworzenie blokow
+        for i in range(len(X) - block_size -target_size+ 1):
+            blocks_X.append(X[i:i + block_size])
+            blocks_y.append(y[i + block_size - 1 : i+ block_size+target_size]) #tyle etykiet ile wynosi target
+
+        self.X = np.array(blocks_X)  
+        self.y = np.array(blocks_y)
+
+        if convert_to_categorical:
+            num_classes = len(np.unique(self.y))
+            self.y = to_categorical(self.y, num_classes=num_classes)
+
+        self.X = torch.tensor(self.X, dtype=torch.float32)
+        self.y = torch.tensor(self.y, dtype=torch.long if not convert_to_categorical else torch.float32)
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.X[idx], self.y[idx]
