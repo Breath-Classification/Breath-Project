@@ -1,0 +1,17 @@
+{
+  "os":  "Linux-6.14.0-29-generic-x86_64-with-glibc2.35",
+  "python":  "CPython 3.11.14",
+  "startedAt":  "2025-11-13T08:42:57.039598Z",
+  "program":  "/workspaces/Breath-Project/Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/main.py",
+  "codePath":  "Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/main.py",
+  "codePathLocal":  "main.py",
+  "git":  {
+    "remote":  "https://github.com/Breath-Classification/Breath-Project.git",
+    "commit":  "01df1d27a3cfcb5fea9c628c3a8d8bafecdf15f7"
+  },
+  "email":  "s203668@student.pg.edu.pl",
+  "root":  "/workspaces/Breath-Project/Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch",
+  "host":  "817d7e527c50",
+  "executable":  "/usr/bin/python",
+  "writerId":  "4nkrxk4tmnhl63lr5xpaxu75my9rrhdw"
+}

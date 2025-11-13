@@ -2,6 +2,7 @@ from data_loader import create_dataloaders
 from torchvision import transforms
 from GRUMODELPYTROCH import GruModel
 from GRUMODELPYTROCH import Seq2SeqGRU
+from GRUMODELPYTROCH import GRUAttentionModel
 import torch
 import engine
 import Seq2SeqEngine
@@ -17,7 +18,7 @@ class SensorType(Enum):
 
 if __name__ == "__main__":
 
-    NUM_EPOCHS = 100
+    NUM_EPOCHS = 64
     LEARNING_RATE = 0.001
     BATCHES = 32
     BLOCK_SIZE=[12]
@@ -28,8 +29,8 @@ if __name__ == "__main__":
     for i, block in enumerate(BLOCK_SIZE):
         wandb.init(  #dane konkretnej proby
                 project="GRU-optymalization",
-                name=f"100 epochs block={block} target={TARGET}",
-                group="Seq2Seq",
+                name=f"Attention Dropout block={block}",
+                group="Attention",
                 config={
                     "epochs": NUM_EPOCHS,
                     "batch_size": BATCHES,
@@ -57,12 +58,12 @@ if __name__ == "__main__":
         output_shape = 4 #liczba kategorii
 
         #model = GruModel(input_shape=input_shape,hidden_units=hidden_units,output_shape=output_shape)
-        model = Seq2SeqGRU(input_shape=input_shape,hidden_units=hidden_units,output_shape=output_shape)
+        model = GRUAttentionModel(input_shape=input_shape,hidden_units=hidden_units,output_shape=output_shape)
         loss_fn = torch.nn.CrossEntropyLoss() #loss function
         optimizer = torch.optim.Adam(model.parameters(),
                                     lr=LEARNING_RATE)
 
-        Seq2SeqEngine.train(model,train,test,optimizer,loss_fn,NUM_EPOCHS,"cpu")
+        engine.train(model,train,test,optimizer,loss_fn,NUM_EPOCHS,"cpu")
         
         wandb.finish()
     model.eval()
