@@ -68,8 +68,9 @@ class BahdanauAttention(nn.Module):
 class GRUAttentionModel(nn.Module):
     def __init__(self, input_shape: int, hidden_units: int, output_shape: int):
         super().__init__()
-        self.dropout = nn.Dropout(0.1)
+        self.dropout = nn.Dropout(0.03)
         self.gru = nn.GRU(input_size=input_shape, hidden_size=hidden_units, batch_first=True)
+        self.dropout = nn.Dropout(0.07)
         self.attn = BahdanauAttention(hidden_units)
         self.fc = nn.Linear(hidden_units, output_shape)
     def forward(self, x):

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     NUM_EPOCHS = 64
     LEARNING_RATE = 0.001
     BATCHES = 32
-    BLOCK_SIZE=[12]
+    BLOCK_SIZE=[6,7,8,9,10,11]
     SENSOR = SensorType.TENSOMETER
     SENSOR_NAME = SENSOR.value["name"]
     TARGET =2
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     for i, block in enumerate(BLOCK_SIZE):
         wandb.init(  #dane konkretnej proby
                 project="GRU-optymalization",
-                name=f"Attention Dropout block={block}",
+                name=f"Attention Dropout 2 after 0.03 and 0.07 1 block={block}",
                 group="Attention",
                 config={
                     "epochs": NUM_EPOCHS,
