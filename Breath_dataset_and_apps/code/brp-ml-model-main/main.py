@@ -86,6 +86,7 @@ if __name__ == "__main__":
     model.fit(sensor_type=f"{SENSOR_NAME}", epochs=64)
     
     
+    evaluate_data_set_size()
     print(f"Training time: {time.time() - time_before}")
     
     
