@@ -16,10 +16,10 @@ class SensorType(Enum):
     WIT_ACCELEROMETER = {"name": "acc", "size": 12}
 
 def train_and_predict():
-    NUM_EPOCHS = 64
+    NUM_EPOCHS = 3
     LEARNING_RATE = 0.001
     BATCHES = 32
-    BLOCK_SIZE=[6,7,8,9,10,11]
+    BLOCK_SIZE=[12]
     SENSOR = SensorType.TENSOMETER
     SENSOR_NAME = SENSOR.value["name"]
     TARGET = 2
@@ -30,8 +30,8 @@ def train_and_predict():
     for i, block in enumerate(BLOCK_SIZE):
         wandb.init(
             project="GRU-optymalization",
-            name=f"Attention Dropout 2 after 0.03 and 0.07 1 block={block}",
-            group="Attention",
+            name=f"test block={block}",
+            group="Test",
             config={
                 "epochs": NUM_EPOCHS,
                 "batch_size": BATCHES,
@@ -53,13 +53,15 @@ def train_and_predict():
                                          batch_size=BATCHES,
                                          block_size=block,
                                          target=TARGET)
-
+       
         X_batch, y_batch = next(iter(train))
+        
+        
         input_shape = X_batch.shape[2]
         hidden_units = 64
         output_shape = 4
 
-        model = GRUAttentionModel(input_shape=input_shape,
+        model = GruModel(input_shape=input_shape,
                                   hidden_units=hidden_units,
                                   output_shape=output_shape)
 
@@ -68,22 +70,26 @@ def train_and_predict():
 
         engine.train(model, train, test, optimizer, loss_fn, NUM_EPOCHS, "cpu")
 
-        last_X_batch = X_batch    # przechowujemy batch
-        last_y_batch = y_batch
-
         wandb.finish()
 
-    # ---- PREDYKCJE ----
+    all_preds = []
+    all_trues = []
+
+    all_features = []
     model.eval()
     with torch.no_grad():
-        y_pred = model(last_X_batch)  # shape: (batch, seq_len, output_dim)
-        target_size = last_y_batch.shape[1]
-        y_pred = y_pred[:, -target_size:, :]  # wybieramy końcówkę sekwencji
+        for X, y in test:
+            y_pred = model(X)  # (batch, target_size, num_classes) jeśli seq2seq
+            pred_classes = torch.argmax(y_pred, dim=1)  # (batch, target_size) 
+            all_preds.append(pred_classes.cpu())
+            all_trues.append(y.cpu())
+            all_features.append(X.cpu())
+        all_preds =torch.cat(all_preds)
+        all_trues =torch.cat(all_trues)
+        all_features =torch.cat(all_features)
+        return all_preds, all_trues, all_features
 
-    # predykcje klas
-    y_pred_classes = torch.argmax(torch.softmax(y_pred, dim=2), dim=2)
 
-    return y_pred_classes, last_y_batch
 
 
 if __name__ == "__main__":
