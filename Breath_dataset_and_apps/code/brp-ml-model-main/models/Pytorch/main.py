@@ -87,6 +87,7 @@ def train_and_predict():
         all_preds =torch.cat(all_preds)
         all_trues =torch.cat(all_trues)
         all_features =torch.cat(all_features)
+        all_features = all_features.mean(dim=1) 
         return all_preds, all_trues, all_features
 
 

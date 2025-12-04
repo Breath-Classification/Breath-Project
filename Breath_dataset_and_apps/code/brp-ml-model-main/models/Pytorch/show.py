@@ -14,5 +14,10 @@ if __name__ == "__main__":
     train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
     test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
     
-    y_pred,y_true,X = train_and_predict()
     
+    y_pred,y_true,X = train_and_predict()
+    print(X.size())
+    X= X[:, -1] 
+    print(X.size())
+    print(y_pred.size())
+    interactive_plot(X,y_pred,y_true)
