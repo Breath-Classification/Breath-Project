@@ -1,5 +1,7 @@
-# Ignorowanie plików PNG w Animation
-Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/Animation/*.png
+
+
+
+Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/Animation/
 
 # Ignorowanie folderów wandb
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/wandb/
