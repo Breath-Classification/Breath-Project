@@ -24,6 +24,8 @@ def create_dataloaders(
   train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
   test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
   
+  print (train_data.y)
+  print (test_data.y)
   #train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt")
   #test_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_test.txt")
   
@@ -33,7 +35,7 @@ def create_dataloaders(
   train_dataloader = DataLoader(
       train_data,
       batch_size=batch_size,
-      shuffle=True,
+      shuffle=False,
       num_workers=num_workers,
       pin_memory=True,
   )

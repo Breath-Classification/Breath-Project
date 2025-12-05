@@ -9,6 +9,8 @@ from models.LSTMModel import LSTMModel
 from scripts.load_data import prepare_data_for_training
 from scripts.plot import plot_evaluation_history, plot_history, plot_test_data
 import matplotlib.pyplot as plt
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # TODO: Change logic in labelling or any different
 #  plot so it can be used in this test using predicted
@@ -68,7 +70,7 @@ def evaluate_epochs():
 
 
 if __name__ == "__main__":
-   
+    '''
     prepare_data_for_training(sensor=SENSOR)
     # evaluate_data_set_size()
     scores = []
@@ -89,20 +91,20 @@ if __name__ == "__main__":
     evaluate_data_set_size()
     print(f"Training time: {time.time() - time_before}")
     
-    
-    # model = GRUModel()
-    # model.load_data(
-    #     filename=f"data/pretrained/{SENSOR_NAME}_sequence/{SENSOR_NAME}_concatenated.txt",
-    #     sensor_type=f"{SENSOR_NAME}",
-    # )
-    # model.get_random_samples(0.1)
-    # model.compile()
-    # time_before = time.time()
-    # model.fit(sensor_type=f"{SENSOR_NAME}", epochs=100)
-    # print(f"Training time: {time.time() - time_before}")
-    # model.load(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
-    #model.save(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
-    #model.confusion_matrix(model.X_test, model.y_test, name=f"{SENSOR_NAME}_test")
-    #model.plot_prediction(model.X_test, name=f"{SENSOR_NAME}_test")
-    #plot_history(f"models/saves/{SENSOR_NAME}/GRUModel.history")
-    # plot_test_data(SENSOR_NAME, normalize_data=True)
+    '''
+    model = GRUModel()
+    model.load_data(
+         filename=f"data/pretrained/{SENSOR_NAME}_sequence/{SENSOR_NAME}_concatenated.txt",
+         sensor_type=f"{SENSOR_NAME}",
+     )
+    model.get_random_samples(0.1)
+    model.compile()
+    time_before = time.time()
+    model.fit(sensor_type=f"{SENSOR_NAME}", epochs=100)
+    print(f"Training time: {time.time() - time_before}")
+    model.load(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
+    model.save(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
+    model.confusion_matrix(model.X_test, model.y_test, name=f"{SENSOR_NAME}_test")
+    model.plot_prediction(model.X_test, name=f"{SENSOR_NAME}_test")
+    plot_history(f"models/saves/{SENSOR_NAME}/GRUModel.history")
+    plot_test_data(SENSOR_NAME, normalize_data=True)

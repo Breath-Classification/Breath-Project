@@ -85,7 +85,7 @@ def interactive_plot(
 
     fig, (ax1, ax2) = plt.subplots(2, 1)
 
-    plt.gcf().canvas.mpl_connecct("key_press_event",on_key)
+    plt.gcf().canvas.mpl_connect("key_press_event",on_key)
     
     plot(ax1, current_index, predicted=True)
     plot(ax2, current_index, predicted=False)
