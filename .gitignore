@@ -1,2 +1,12 @@
-.png
-.mp4
+# Ignorowanie plików PNG w Animation
+Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/Animation/*.png
+
+# Ignorowanie folderów wandb
+Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/wandb/
+
+# Dodatkowo pliki tymczasowe Pythona
+*.pyc
+__pycache__/
+
+# VS Code
+.vscode/
