@@ -37,6 +37,15 @@ RUN apt-get update && \
       python3.11-venv \
       python3.11-distutils \
     && rm -rf /var/lib/apt/lists/*
+    
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-tk \
+    tk \
+    libfreetype6-dev \
+    libpng-dev \
+    libgl1 \
+    libglib2.0-0 \
+  && rm -rf /var/lib/apt/lists/*
 
 # Ensure pip for python3.11
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py && \

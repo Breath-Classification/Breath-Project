@@ -85,16 +85,14 @@ def interactive_plot(
 
     fig, (ax1, ax2) = plt.subplots(2, 1)
 
-# Zamiast mpl_connect i interaktywności
-    for current_index in range(0, len(features) - window_size, 10):
-        plot(ax1, current_index, predicted=True)
-        plot(ax2, current_index, predicted=False)
-        plt.suptitle(f"{title} - index {current_index}")
-        plt.savefig(f"Animation/proba_{current_index}.png")
-        ax1.clear()
-        ax2.clear()
+    plt.gcf().canvas.mpl_connecct("key_press_event",on_key)
+    
+    plot(ax1, current_index, predicted=True)
+    plot(ax2, current_index, predicted=False)
+    
+    plt.suptitle(title)
 
-
+    plt.show()
 def plot_raw_data(sensor_type: str, name: str):
     seconds, numbers = load_raw_data(f"data/raw/{sensor_type}/{sensor_type}_{name}.csv")
 

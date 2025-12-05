@@ -16,7 +16,7 @@ class SensorType(Enum):
     WIT_ACCELEROMETER = {"name": "acc", "size": 12}
 
 def train_and_predict():
-    NUM_EPOCHS = 3
+    NUM_EPOCHS = 20
     LEARNING_RATE = 0.001
     BATCHES = 32
     BLOCK_SIZE=[12]
@@ -78,6 +78,19 @@ def train_and_predict():
     all_features = []
     model.eval()
     with torch.no_grad():
+        for X, y in train:
+            y_pred = model(X)  # (batch, target_size, num_classes) jeśli seq2seq
+            pred_classes = torch.argmax(y_pred, dim=1)  # (batch, target_size) 
+            all_preds.append(pred_classes.cpu())
+            all_trues.append(y.cpu())
+            all_features.append(X.cpu())
+        all_preds =torch.cat(all_preds)
+        all_trues =torch.cat(all_trues)
+        all_features =torch.cat(all_features)
+        all_features = all_features.mean(dim=1) 
+        return all_preds, all_trues, all_features
+    '''
+     with torch.no_grad():
         for X, y in test:
             y_pred = model(X)  # (batch, target_size, num_classes) jeśli seq2seq
             pred_classes = torch.argmax(y_pred, dim=1)  # (batch, target_size) 
@@ -89,6 +102,7 @@ def train_and_predict():
         all_features =torch.cat(all_features)
         all_features = all_features.mean(dim=1) 
         return all_preds, all_trues, all_features
+    '''
 
 
 
