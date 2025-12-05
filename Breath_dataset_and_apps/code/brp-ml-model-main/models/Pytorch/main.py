@@ -16,10 +16,10 @@ class SensorType(Enum):
     WIT_ACCELEROMETER = {"name": "acc", "size": 12}
 
 def train_and_predict():
-    NUM_EPOCHS = 64
+    NUM_EPOCHS = 128
     LEARNING_RATE = 0.001
     BATCHES = 32
-    BLOCK_SIZE=[1]
+    BLOCK_SIZE=[30,31,32,33,34,35,80]
     SENSOR = SensorType.TENSOMETER
     SENSOR_NAME = SENSOR.value["name"]
     TARGET = 2
@@ -30,8 +30,8 @@ def train_and_predict():
     for i, block in enumerate(BLOCK_SIZE):
         wandb.init(
             project="GRU-optymalization",
-            name=f"test block={block}",
-            group="Test",
+            name=f"more epochs shuffle = false block ={block}",
+            group="Shuffle",
             config={
                 "epochs": NUM_EPOCHS,
                 "batch_size": BATCHES,
@@ -110,7 +110,7 @@ def train_and_predict():
 
 
 if __name__ == "__main__":
-    y_pred, y_true = train_and_predict()
+    y_pred, y_true, X = train_and_predict()
     print("PRED:", y_pred)
     print("TRUE:", y_true)
    
