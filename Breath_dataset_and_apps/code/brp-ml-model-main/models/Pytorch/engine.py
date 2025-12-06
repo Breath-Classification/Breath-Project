@@ -8,6 +8,8 @@ from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 import wandb
 print("wandb.run before training:", wandb.run)
+
+EPSILON = 2
 def train_step(model: torch.nn.Module, 
                dataloader: torch.utils.data.DataLoader, 
                loss_fn: torch.nn.Module, 
@@ -40,6 +42,22 @@ def train_step(model: torch.nn.Module,
   train_acc = train_acc / len(dataloader)
   return train_loss, train_acc
 
+def acceptable_error(y_pred, y_true, i):
+  matched = False
+  batch_size = len(y_true)
+  for j in range(1, EPSILON + 1):
+    if i - j >= 0 and y_pred[i] == y_true[i - j]:
+      matched = True
+      break
+    if i + j < batch_size and y_pred[i] == y_true[i + j]:
+      matched = True
+      break
+
+  if not matched:
+    return False  
+
+  return True
+    
 def test_step(model: torch.nn.Module, 
               dataloader: torch.utils.data.DataLoader, 
               loss_fn: torch.nn.Module,
@@ -52,21 +70,27 @@ def test_step(model: torch.nn.Module,
   
 
   with torch.inference_mode():
-     
+      
       for batch, (X, y) in enumerate(dataloader):
          
           X, y = X.to(device), y.to(device)
   
           
           test_pred_logits = model(X)
-
-      
-          loss = loss_fn(test_pred_logits, y)
-          test_loss += loss.item()
+          test_pred_labels = test_pred_logits.argmax(dim=1)
+          batch_loss = 0.0
+          for i in range(len(y)):
+            if(test_pred_labels[i]!=y[i]):
+              if(acceptable_error(test_pred_labels,y,i)):
+                 continue
+              
+              loss = loss_fn(test_pred_logits[i].unsqueeze(0), y[i].unsqueeze(0))
+              batch_loss += loss.item()
           
          
-          test_pred_labels = test_pred_logits.argmax(dim=1)
+          test_loss += batch_loss
           test_acc += ((test_pred_labels == y).sum().item()/len(test_pred_labels))
+          
           
   test_loss = test_loss / len(dataloader)
   test_acc = test_acc / len(dataloader)
