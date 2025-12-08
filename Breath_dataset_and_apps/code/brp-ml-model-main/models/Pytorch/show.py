@@ -3,6 +3,7 @@ from data_download import BlockDataset
 import sys
 import os
 from main import train_and_predict
+from engine import acceptable_error
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
@@ -16,8 +17,14 @@ if __name__ == "__main__":
     
     
     y_pred,y_true,X = train_and_predict()
-    print(X.size())
+    
     X= X[:, -1] 
-    print(X.size())
-    print(y_pred.size())
+   
+   
+    interactive_plot(X,y_pred,y_true)
+    
+    for i in range(len(y_true)):
+        if(y_true[i]!=y_pred[i] and acceptable_error(y_pred,y_true,i,2)== True):
+            y_pred[i]=4
+            print("zamiana")
     interactive_plot(X,y_pred,y_true)

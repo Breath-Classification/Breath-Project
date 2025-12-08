@@ -1,7 +1,7 @@
 import torch
 import matplotlib.pyplot as plt 
 from main import train_and_predict
-
+from engine import acceptable_error
 
 if __name__ == "__main__":
     y_pred,y_true,X = train_and_predict()
@@ -11,14 +11,17 @@ if __name__ == "__main__":
     "blue-yellow": 0,
     "green-red": 0,
     "green-yellow": 0,
-    "yellow-red": 0
+    "yellow-red": 0,
+    "acceptable-error":0
     }
     for i in range(len(y_pred)):
         true = y_true[i]
         pred = y_pred[i]
     
         if true != pred:
-            if true == 0 and pred == 1 or true == 1 and pred == 0:
+            if(acceptable_error(y_pred,y_true,i,2)== True):
+                mistakes["acceptable-error"] += 1
+            elif true == 0 and pred == 1 or true == 1 and pred == 0:
                 mistakes["green-red"] += 1
             elif true == 0 and pred == 2 or true == 2 and pred == 0:
                 mistakes["blue-red"] += 1
@@ -33,4 +36,5 @@ if __name__ == "__main__":
     labels = list(mistakes.keys())
     values = list(mistakes.values())
     plt.bar(labels,values)
-    plt.show()
+   # plt.show()
+    plt.savefig("visualisation/mistakes_epsilon.png")

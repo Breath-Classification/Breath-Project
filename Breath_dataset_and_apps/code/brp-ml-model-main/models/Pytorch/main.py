@@ -5,6 +5,7 @@ from GRUMODELPYTROCH import Seq2SeqGRU
 from GRUMODELPYTROCH import GRUAttentionModel
 import torch
 import engine
+import engine_without_epsilon
 import Seq2SeqEngine
 import wandb 
 from enum import Enum
@@ -16,10 +17,10 @@ class SensorType(Enum):
     WIT_ACCELEROMETER = {"name": "acc", "size": 12}
 
 def train_and_predict():
-    NUM_EPOCHS = 3
+    NUM_EPOCHS = 30
     LEARNING_RATE = 0.001
     BATCHES = 32
-    BLOCK_SIZE=[2]
+    BLOCK_SIZE=[30]
     SENSOR = SensorType.TENSOMETER
     SENSOR_NAME = SENSOR.value["name"]
     TARGET = 2
