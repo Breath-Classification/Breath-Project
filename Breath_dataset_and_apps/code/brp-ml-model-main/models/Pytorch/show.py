@@ -4,7 +4,7 @@ import sys
 import os
 from main import train_and_predict
 from main import load_model_and_predict
-from engine import acceptable_error
+from scripts.error_tolerance import acceptable_error
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 

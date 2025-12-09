@@ -55,7 +55,7 @@ def train_and_predict():
 
         wandb.finish()
         
-    torch.save(model.state_dict(), "saved_models/model.pth")
+    torch.save(model.state_dict(), "saved_models/model2.pth")
     all_preds, all_trues, all_features = evaluate_model(model,test)
     return all_preds, all_trues, all_features
     
@@ -120,7 +120,7 @@ def load_model_and_predict(model_path):
     model =create_model(block=30)
     train,test= create_train_test(block=30)
     model.load_state_dict(torch.load(model_path))
-    all_preds, all_trues, all_features = evaluate_model(model,train)
+    all_preds, all_trues, all_features = evaluate_model(model,test)
     return all_preds,all_trues,all_features
 
 

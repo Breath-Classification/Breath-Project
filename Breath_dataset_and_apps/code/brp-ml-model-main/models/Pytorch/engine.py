@@ -7,6 +7,9 @@ from torch.optim.lr_scheduler import StepLR
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 import wandb
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 print("wandb.run before training:", wandb.run)
 
 EPSILON = 2

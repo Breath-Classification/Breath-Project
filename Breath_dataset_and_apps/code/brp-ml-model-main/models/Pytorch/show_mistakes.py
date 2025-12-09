@@ -2,7 +2,10 @@ import torch
 import matplotlib.pyplot as plt 
 from main import train_and_predict
 from main import load_model_and_predict
-from engine import acceptable_error
+from scripts.error_tolerance import acceptable_error
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 if __name__ == "__main__":
     y_pred,y_true,X = load_model_and_predict("saved_models/model.pth")
