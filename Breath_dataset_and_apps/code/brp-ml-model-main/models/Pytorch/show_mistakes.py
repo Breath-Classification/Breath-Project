@@ -1,10 +1,11 @@
 import torch
 import matplotlib.pyplot as plt 
 from main import train_and_predict
+from main import load_model_and_predict
 from engine import acceptable_error
 
 if __name__ == "__main__":
-    y_pred,y_true,X = train_and_predict()
+    y_pred,y_true,X = load_model_and_predict("saved_models/model.pth")
     mistakes = {
     "blue-green": 0,
     "blue-red": 0,
@@ -36,5 +37,4 @@ if __name__ == "__main__":
     labels = list(mistakes.keys())
     values = list(mistakes.values())
     plt.bar(labels,values)
-   # plt.show()
-    plt.savefig("visualisation/mistakes_epsilon.png")
+    plt.show()

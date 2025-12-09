@@ -3,6 +3,7 @@
 
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/Animation/
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/visualisation/
+Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/saved_models/
 
 # Ignorowanie folderów wandb
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/wandb/
