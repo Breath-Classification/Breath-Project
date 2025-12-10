@@ -14,7 +14,7 @@ block_size =30
 
 if __name__ == "__main__":
 
-    y_pred,y_true,X = load_model_and_predict(model_path="saved_models/model.pth")
+    y_pred,y_true,X = load_model_and_predict(model_path="saved_models/LSTM_STACKED_30.pth")
     
     X= X[:, -1] # size
    
