@@ -7,6 +7,7 @@ from LSTM.LSTM_Base import LSTM_BASE
 from LSTM.LSTM_Dropout import LSTM_DROPOUT
 from LSTM.LSTM_Stacked import LSTM_STACKED
 from LSTM.LSTM_Bidirectional import LSTM_BIDIRECTIONAL
+from LSTM.LSTM_Conv1 import LSTM_CONV1
 import torch
 import engine
 import engine_without_epsilon
@@ -23,7 +24,7 @@ class SensorType(Enum):
 NUM_EPOCHS = 60
 LEARNING_RATE = 0.001
 BATCHES = 32
-BLOCK_SIZE=[1,5,10,20,30]
+BLOCK_SIZE=[30,31,32]
 SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 TARGET = 2
@@ -34,8 +35,8 @@ def train_and_predict():
         #logs
         wandb.init(
             project="GRU-optymalization",
-            name=f"LSTM_BIDIRECTIONAL block ={block}",
-            group="LSTM B",
+            name=f"LSTM_CONV1 block ={block}",
+            group="LSTM C max",
             config={
                 "epochs": NUM_EPOCHS,
                 "batch_size": BATCHES,
@@ -59,7 +60,7 @@ def train_and_predict():
 
         wandb.finish()
         
-    torch.save(model.state_dict(), f"saved_models/LSTM_BIDIRECTIONAL{block}.pth")
+    torch.save(model.state_dict(), f"saved_models/LSTM_CONV1{block}.pth")
     all_preds, all_trues, all_features = evaluate_model(model,test)
     return all_preds, all_trues, all_features
     
@@ -103,7 +104,7 @@ def create_model(block):
     hidden_units = 64
     output_shape = 4
 
-    model = LSTM_BIDIRECTIONAL(input_shape=input_shape,
+    model = LSTM_CONV1(input_shape=input_shape,
                                   hidden_units=hidden_units,
                                   output_shape=output_shape)
     return model
