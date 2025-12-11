@@ -23,7 +23,7 @@ class SensorType(Enum):
 NUM_EPOCHS = 60
 LEARNING_RATE = 0.001
 BATCHES = 32
-BLOCK_SIZE=[30]
+BLOCK_SIZE=[1,5,10,20,30]
 SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 TARGET = 2
@@ -34,8 +34,8 @@ def train_and_predict():
         #logs
         wandb.init(
             project="GRU-optymalization",
-            name=f"GruModel block ={block}",
-            group="test",
+            name=f"LSTM_BIDIRECTIONAL block ={block}",
+            group="LSTM B",
             config={
                 "epochs": NUM_EPOCHS,
                 "batch_size": BATCHES,
@@ -59,7 +59,7 @@ def train_and_predict():
 
         wandb.finish()
         
-    torch.save(model.state_dict(), f"saved_models/GruModel{block}.pth")
+    torch.save(model.state_dict(), f"saved_models/LSTM_BIDIRECTIONAL{block}.pth")
     all_preds, all_trues, all_features = evaluate_model(model,test)
     return all_preds, all_trues, all_features
     
@@ -103,7 +103,7 @@ def create_model(block):
     hidden_units = 64
     output_shape = 4
 
-    model = GruModel(input_shape=input_shape,
+    model = LSTM_BIDIRECTIONAL(input_shape=input_shape,
                                   hidden_units=hidden_units,
                                   output_shape=output_shape)
     return model

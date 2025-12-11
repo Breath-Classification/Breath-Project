@@ -21,12 +21,13 @@ class LSTM_BIDIRECTIONAL(nn.Module):
             num_layers=2
         )
         
-        self.fc = nn.Linear(hidden_units, output_shape)
+        self.fc = nn.Linear(hidden_units*2, output_shape) #  *2 -> bidirectional forward and backward LSTM
 
     def forward(self, x):
         output, (h_n, c_n) = self.lstm(x)
         
+        f =h_n[-2]   #h_n has respectively bacwakrd and forward so we nedd to combine them
         x = h_n[-1]
-
+        x = torch.cat((f,x), dim=1)
         x = self.fc(x)
         return x
