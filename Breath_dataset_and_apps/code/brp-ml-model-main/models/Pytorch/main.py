@@ -9,6 +9,8 @@ from LSTM.LSTM_Stacked import LSTM_STACKED
 from LSTM.LSTM_Bidirectional import LSTM_BIDIRECTIONAL
 from LSTM.LSTM_Conv1 import LSTM_CONV1
 from LSTM.LSTM_Attention import LSTM_ATTENTION
+from focal_loss import FocalLoss
+from adaptive_focal_loss import FocalLossAdaptive
 import torch
 import engine
 import engine_without_epsilon
@@ -36,8 +38,8 @@ def train_and_predict():
         #logs
         wandb.init(
             project="GRU-optymalization",
-            name=f"LSTM_ATTENTION 2 layers block ={block}",
-            group="LSTM C max",
+            name=f"LSTM_ATTENTION 2 layers adaptive block ={block} ",
+            group="Focal Loss",
             config={
                 "epochs": NUM_EPOCHS,
                 "batch_size": BATCHES,
@@ -54,7 +56,7 @@ def train_and_predict():
         model = create_model(block)
         train,test =create_train_test(block)
         
-        loss_fn = torch.nn.CrossEntropyLoss()
+        loss_fn = FocalLossAdaptive(gamma=2)
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
         engine.train(model, train, test, optimizer, loss_fn, NUM_EPOCHS, "cpu")
