@@ -9,8 +9,8 @@ from LSTM.LSTM_Stacked import LSTM_STACKED
 from LSTM.LSTM_Bidirectional import LSTM_BIDIRECTIONAL
 from LSTM.LSTM_Conv1 import LSTM_CONV1
 from LSTM.LSTM_Attention import LSTM_ATTENTION
-from focal_loss import FocalLoss
-from adaptive_focal_loss import FocalLossAdaptive
+from Weightening.focal_loss import FocalLoss
+from Weightening.adaptive_focal_loss import FocalLossAdaptive
 import torch
 import engine
 import engine_without_epsilon
@@ -27,7 +27,7 @@ class SensorType(Enum):
 NUM_EPOCHS = 60
 LEARNING_RATE = 0.001
 BATCHES = 32
-BLOCK_SIZE=[1,5,10,20,30]
+BLOCK_SIZE=[30]
 SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 TARGET = 2
@@ -56,7 +56,7 @@ def train_and_predict():
         model = create_model(block)
         train,test =create_train_test(block)
         
-        loss_fn = FocalLossAdaptive(gamma=2)
+        loss_fn = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
         engine.train(model, train, test, optimizer, loss_fn, NUM_EPOCHS, "cpu")
