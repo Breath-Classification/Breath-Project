@@ -5,7 +5,7 @@ import numpy as np
 from scripts.error_tolerance import acceptable_error
 
 
-y_pred, y_true, X = load_model_and_predict("saved_models/LSTM_ATTENTION_l2_30.pth")
+y_pred, y_true, X = load_model_and_predict("saved_models/Class_Weightening_30.pth")
 
 
 label_mapping = {0: 'red', 1: 'blue', 2: 'green', 3: 'yellow', 4:'pink'}
@@ -31,9 +31,9 @@ fig, ax = plt.subplots(figsize=(6,6))
 disp.plot(ax=ax, cmap='Blues', colorbar=True)
 
 
-plt.title("Confusion Matrix")
+plt.title("Class_Weightening")
 plt.xlabel("Przewidziana klasa")
 plt.ylabel("Rzeczywista klasa")
 
-plt.savefig("Matrix/LSTM_ATTENTION_l2_30_train.png")
+plt.savefig("Matrix/Class_Weightening_30_test.png")
 plt.show()

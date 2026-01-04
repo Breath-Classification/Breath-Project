@@ -39,7 +39,7 @@ def train_and_predict():
         wandb.init(
             project="GRU-optymalization",
             name=f"LSTM_ATTENTION 2 layers adaptive block ={block} ",
-            group="Focal Loss",
+            group="test",
             config={
                 "epochs": NUM_EPOCHS,
                 "batch_size": BATCHES,
@@ -56,14 +56,17 @@ def train_and_predict():
         model = create_model(block)
         train,test =create_train_test(block)
         
-        loss_fn = torch.nn.CrossEntropyLoss()
+        weights = torch.tensor([1.0, 1.0, 1.0, 2.25])
+
+        #loss_fn = FocalLoss(gamma=2)
+        loss_fn = torch.nn.CrossEntropyLoss(weight=weights)
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
         engine.train(model, train, test, optimizer, loss_fn, NUM_EPOCHS, "cpu")
 
         wandb.finish()
         
-    torch.save(model.state_dict(), f"saved_models/LSTM_ATTENTION_l2_{block}.pth")
+    torch.save(model.state_dict(), f"saved_models/Class_Weightening_{block}.pth")
     all_preds, all_trues, all_features = evaluate_model(model,test)
     return all_preds, all_trues, all_features
     
