@@ -1,7 +1,8 @@
+#data_loader
 from data_loader import create_dataloaders
 from torchvision import transforms
+#models
 from GRUMODELPYTROCH import GruModel
-from GRUMODELPYTROCH import Seq2SeqGRU
 from GRUMODELPYTROCH import GRUAttentionModel
 from LSTM.LSTM_Base import LSTM_BASE
 from LSTM.LSTM_Dropout import LSTM_DROPOUT
@@ -9,23 +10,26 @@ from LSTM.LSTM_Stacked import LSTM_STACKED
 from LSTM.LSTM_Bidirectional import LSTM_BIDIRECTIONAL
 from LSTM.LSTM_Conv1 import LSTM_CONV1
 from LSTM.LSTM_Attention import LSTM_ATTENTION
+#loss functions
 from Weightening.focal_loss import FocalLoss
 from Weightening.adaptive_focal_loss import FocalLossAdaptive
-import torch
+#engines
 import engine
 import engine_without_epsilon
-import Seq2SeqEngine
+#libraries
+import torch
 import wandb 
 from enum import Enum
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import os
+
+#Constants
 class SensorType(Enum):
     TENSOMETER = {"name": "tens", "size": 6}
     ACCELEROMETER = {"name": "acc", "size": 12}
-    WIT_ACCELEROMETER = {"name": "acc", "size": 12}
-    
-NUM_EPOCHS = 5
+    WIT_ACCELEROMETER = {"name": "acc", "size": 12}    
+NUM_EPOCHS = 60
 LEARNING_RATE = 0.001
 BATCHES = 32
 BLOCK_SIZE=[30]
@@ -33,12 +37,13 @@ SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 TARGET = 2
 
-
+#Usage of Wandb 
 use_wandb = input("Włączyć W&B? (y/n): ").strip().lower()
 
 print (use_wandb)
 if use_wandb != "y":
     os.environ["WANDB_DISABLED"] = "true"
+
 
 def train_and_predict():
     for i, block in enumerate(BLOCK_SIZE):
@@ -60,9 +65,6 @@ def train_and_predict():
                 "optimizer":"Adam"
             }
         )
-
-
-        
         model = create_model(block)
         train,test =create_train_test(block)
         
@@ -74,6 +76,8 @@ def train_and_predict():
         engine.train(model, train, test, optimizer, loss_fn, NUM_EPOCHS, "cpu")
 
         wandb.finish()
+    
+    #saving model
     if use_wandb == 'n':
         filename = input("input name of the saved model")
         torch.save(model.state_dict(), f"saved_models/{filename}.pth")
@@ -188,8 +192,8 @@ def create_train_test(block):
     return train,test
 def load_model_and_predict(model_path):
     
-    model =create_model(block=30)
-    train,test= create_train_test(block=30)
+    model =create_model(block=BLOCK_SIZE)
+    train,test= create_train_test(block=BLOCK_SIZE)
     model.load_state_dict(torch.load(model_path))
     all_preds, all_trues, all_features = evaluate_model(model,test)
     return all_preds,all_trues,all_features

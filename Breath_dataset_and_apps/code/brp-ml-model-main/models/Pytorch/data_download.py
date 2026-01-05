@@ -35,8 +35,11 @@ class SequenceDataset(Dataset): #dane ladowane sekwencyjnie
     
     
 class BlockDataset(Dataset): #dane ladowane blokowo
-    def __init__(self, filename, block_size, convert_to_categorical=False):
+    def __init__(self, filename, block_size, convert_to_categorical=False, sigma=0.01, augment=True):
         
+        self.sigma = sigma
+        self.augment = augment
+
         data = []
         with open(filename, "r") as f:
             for line in f.readlines():
@@ -66,7 +69,15 @@ class BlockDataset(Dataset): #dane ladowane blokowo
         return len(self.X)
 
     def __getitem__(self, idx):
-        return self.X[idx], self.y[idx]
+        x = self.X[idx]
+        y = self.y[idx]
+
+        #add Gausian noise
+        if self.augment:
+            noise = torch.randn_like(x) * self.sigma
+            x = x + noise
+
+        return x, y
     
 class BlockDatasetHalf(Dataset): #dane ladowane blokowo
     def __init__(self, filename, block_size, convert_to_categorical=False):

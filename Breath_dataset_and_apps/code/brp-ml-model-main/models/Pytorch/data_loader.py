@@ -1,16 +1,10 @@
 
-"""
-Contains functionality for creating PyTorch DataLoaders for 
-image classification data.
-"""
 import os
 
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-from data_download import SequenceDataset
 from data_download import BlockDataset
-from data_download import BlockDatasetHalf
-from data_download import BlockTargetDataset
+
 NUM_WORKERS = os.cpu_count()
 
 def create_dataloaders(
@@ -21,16 +15,9 @@ def create_dataloaders(
     num_workers: int=0
 ):
 
-  train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
-  test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
-  
-  print (train_data.y)
-  print (test_data.y)
-  #train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt")
-  #test_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_test.txt")
-  
-  #train_data =         BlockTargetDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size,target)
-  #test_data=       BlockTargetDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size,target)
+  #GAUSIAN NOISE AUGUMENT -> TRUE else AUGUMENT -> FALSE
+  train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size, augment=False)
+  test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size, augment=False)
   
   train_dataloader = DataLoader(
       train_data,
