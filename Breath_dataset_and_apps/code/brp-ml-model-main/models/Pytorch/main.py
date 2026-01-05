@@ -25,7 +25,7 @@ class SensorType(Enum):
     ACCELEROMETER = {"name": "acc", "size": 12}
     WIT_ACCELEROMETER = {"name": "acc", "size": 12}
     
-NUM_EPOCHS = 60
+NUM_EPOCHS = 5
 LEARNING_RATE = 0.001
 BATCHES = 32
 BLOCK_SIZE=[30]
@@ -66,17 +66,19 @@ def train_and_predict():
         model = create_model(block)
         train,test =create_train_test(block)
         
-        weights = torch.tensor([1.0, 1.0, 1.0, 2.25])
 
         #loss_fn = FocalLoss(gamma=2)
-        loss_fn = torch.nn.CrossEntropyLoss(weight=weights)
+        loss_fn = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
         engine.train(model, train, test, optimizer, loss_fn, NUM_EPOCHS, "cpu")
 
         wandb.finish()
-        
-    torch.save(model.state_dict(), f"saved_models/Class_Weightening_{block}.pth")
+    if use_wandb == 'n':
+        filename = input("input name of the saved model")
+        torch.save(model.state_dict(), f"saved_models/{filename}.pth")
+    else:
+        torch.save(model.state_dict(), f"saved_models/Class_Weightening_{block}.pth")
     all_preds, all_trues, all_features = evaluate_model(model,test)
     return all_preds, all_trues, all_features
     
@@ -120,7 +122,55 @@ def create_model(block):
     hidden_units = 64
     output_shape = 4
 
-    model = LSTM_ATTENTION(input_shape=input_shape,
+    if use_wandb == 'n':
+        print("Model:")
+        print("1 - LSTM_ATTENTION")
+        print("2 - LSTM_STACKED")
+        print("3 - GruModel")
+        print("4 - LSTM_BIDIRECTIONAL")
+        print("5 - GRUAttentionModel")
+        print("6 - LSTM_BASE")
+        print("7 - LSTM_DROPOUT")
+        print("8 - LSTM_CONV1")
+
+        model_choice = input().strip()
+
+        if model_choice == "1":
+            model = LSTM_ATTENTION(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
+        elif model_choice == "2":
+            model = LSTM_STACKED(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
+        elif model_choice == "3":
+            model = GruModel(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
+        elif model_choice == "4":
+            model = LSTM_BIDIRECTIONAL(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
+        elif model_choice == "5":
+            model = GRUAttentionModel(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
+        elif model_choice == "6":
+            model = LSTM_BASE(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
+        elif model_choice == "7":
+            model = LSTM_DROPOUT(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
+        elif model_choice == "8":
+            model = LSTM_CONV1(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
+        else:
+            print("error")
+    else:
+        model = LSTM_ATTENTION(input_shape=input_shape,
                                   hidden_units=hidden_units,
                                   output_shape=output_shape)
     return model
