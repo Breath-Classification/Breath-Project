@@ -19,6 +19,7 @@ import wandb
 from enum import Enum
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import os
 class SensorType(Enum):
     TENSOMETER = {"name": "tens", "size": 6}
     ACCELEROMETER = {"name": "acc", "size": 12}
@@ -32,11 +33,19 @@ SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 TARGET = 2
 
+
+use_wandb = input("Włączyć W&B? (y/n): ").strip().lower()
+
+print (use_wandb)
+if use_wandb != "y":
+    os.environ["WANDB_DISABLED"] = "true"
+
 def train_and_predict():
     for i, block in enumerate(BLOCK_SIZE):
         
         #logs
         wandb.init(
+            mode="online" if  use_wandb=='y' else "disabled",
             project="GRU-optymalization",
             name=f"LSTM_ATTENTION 2 layers adaptive block ={block} ",
             group="test",
@@ -51,6 +60,7 @@ def train_and_predict():
                 "optimizer":"Adam"
             }
         )
+
 
         
         model = create_model(block)
