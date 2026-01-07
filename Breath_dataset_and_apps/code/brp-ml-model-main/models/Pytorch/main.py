@@ -192,8 +192,8 @@ def create_train_test(block):
     return train,test
 def load_model_and_predict(model_path):
     
-    model =create_model(block=BLOCK_SIZE)
-    train,test= create_train_test(block=BLOCK_SIZE)
+    model =create_model(block=30)
+    train,test= create_train_test(block=30)
     model.load_state_dict(torch.load(model_path))
     all_preds, all_trues, all_features = evaluate_model(model,test)
     return all_preds,all_trues,all_features
