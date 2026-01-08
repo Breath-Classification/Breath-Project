@@ -10,6 +10,7 @@ from LSTM.LSTM_Stacked import LSTM_STACKED
 from LSTM.LSTM_Bidirectional import LSTM_BIDIRECTIONAL
 from LSTM.LSTM_Conv1 import LSTM_CONV1
 from LSTM.LSTM_Attention import LSTM_ATTENTION
+from Transformers.transformer import Transformer
 #loss functions
 from Weightening.focal_loss import FocalLoss
 from Weightening.adaptive_focal_loss import FocalLossAdaptive
@@ -29,8 +30,8 @@ class SensorType(Enum):
     TENSOMETER = {"name": "tens", "size": 6}
     ACCELEROMETER = {"name": "acc", "size": 12}
     WIT_ACCELEROMETER = {"name": "acc", "size": 12}    
-NUM_EPOCHS = 60
-LEARNING_RATE = 0.001
+NUM_EPOCHS = 200
+LEARNING_RATE = 0.0001 #dla LSTM 0.001
 BATCHES = 32
 BLOCK_SIZE=[30]
 SENSOR = SensorType.TENSOMETER
@@ -136,6 +137,7 @@ def create_model(block):
         print("6 - LSTM_BASE")
         print("7 - LSTM_DROPOUT")
         print("8 - LSTM_CONV1")
+        print("9 - Transformer")
 
         model_choice = input().strip()
 
@@ -169,6 +171,10 @@ def create_model(block):
                                     output_shape=output_shape)
         elif model_choice == "8":
             model = LSTM_CONV1(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
+        elif model_choice == "9":
+            model = Transformer(input_shape=input_shape,d_model=32,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
         else:
