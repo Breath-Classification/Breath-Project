@@ -33,7 +33,7 @@ class SensorType(Enum):
 NUM_EPOCHS = 200
 LEARNING_RATE = 0.0001 #dla LSTM 0.001
 BATCHES = 32
-BLOCK_SIZE=[30]
+BLOCK_SIZE=[1,5,10,20,30,35,40]
 SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 TARGET = 2
@@ -53,14 +53,14 @@ def train_and_predict():
         wandb.init(
             mode="online" if  use_wandb=='y' else "disabled",
             project="GRU-optymalization",
-            name=f"LSTM_ATTENTION 2 layers adaptive block ={block} ",
-            group="test",
+            name=f"Transformer {block} ",
+            group="Transformers ",
             config={
                 "epochs": NUM_EPOCHS,
                 "batch_size": BATCHES,
                 "lr": LEARNING_RATE,
                 "block_size":BLOCK_SIZE,
-                "model":"GRU",
+                "model":"Transformer",
                 "sensor":SENSOR_NAME,
                 "loss_fn":"CrossEntropyLoss",
                 "optimizer":"Adam"
@@ -70,7 +70,7 @@ def train_and_predict():
         train,test =create_train_test(block)
         
 
-        #loss_fn = FocalLoss(gamma=2)
+        #loss_fn = FocalLossAdaptive(gamma=2)
         loss_fn = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
@@ -180,9 +180,9 @@ def create_model(block):
         else:
             print("error")
     else:
-        model = LSTM_ATTENTION(input_shape=input_shape,
-                                  hidden_units=hidden_units,
-                                  output_shape=output_shape)
+        model = Transformer(input_shape=input_shape,d_model=32,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape)
     return model
     
 def create_train_test(block):
