@@ -19,9 +19,11 @@ class LSTM_BASE(nn.Module):
         
         self.fc = nn.Linear(hidden_units, output_shape)
 
-    def forward(self, x):
+    def forward(self, x, return_sequence=False):
         output, (h_n, c_n) = self.lstm(x)
         
+        if(return_sequence):
+            return output
         x= h_n[-1]
 
         x = self.fc(x)

@@ -9,6 +9,7 @@ from typing import Dict, List, Tuple
 import wandb
 import os
 import sys
+from scripts.error_tolerance import acceptable_error
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 print("wandb.run before training:", wandb.run)
 
@@ -45,21 +46,7 @@ def train_step(model: torch.nn.Module,
   train_acc = train_acc / len(dataloader)
   return train_loss, train_acc
 
-def acceptable_error(y_pred, y_true, i, EPSILON):
-  matched = False
-  batch_size = len(y_true)
-  for j in range(1, EPSILON + 1):
-    if i - j >= 0 and y_pred[i] == y_true[i - j]:
-      matched = True
-      break
-    if i + j < batch_size and y_pred[i] == y_true[i + j]:
-      matched = True
-      break
 
-  if not matched:
-    return False  
-
-  return True
     
 def test_step(model: torch.nn.Module, 
               dataloader: torch.utils.data.DataLoader, 

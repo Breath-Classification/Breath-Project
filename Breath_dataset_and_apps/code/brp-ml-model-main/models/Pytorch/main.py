@@ -24,16 +24,18 @@ from enum import Enum
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import os
+from HMM import viterbi_algorithm
+
 
 #Constants
 class SensorType(Enum):
     TENSOMETER = {"name": "tens", "size": 6}
     ACCELEROMETER = {"name": "acc", "size": 12}
     WIT_ACCELEROMETER = {"name": "acc", "size": 12}    
-NUM_EPOCHS = 200
-LEARNING_RATE = 0.0001 #dla LSTM 0.001
+NUM_EPOCHS = 60
+LEARNING_RATE = 0.001 #dla LSTM 0.001
 BATCHES = 32
-BLOCK_SIZE=[1,5,10,20,30,35,40]
+BLOCK_SIZE=[30]
 SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 TARGET = 2
@@ -94,20 +96,55 @@ def evaluate_model(model, test):
 
     all_features = []
     model.eval()
-    with torch.no_grad():
-        for X, y in test:
-            y_pred = model(X)  
-            pred_classes = torch.argmax(y_pred, dim=1)  
-            all_preds.append(pred_classes.cpu())
-            all_trues.append(y.cpu())
-            all_features.append(X.cpu())
-        all_preds =torch.cat(all_preds)
-        all_trues =torch.cat(all_trues)
-        all_features =torch.cat(all_features)
-        print(all_trues)
-        print(all_features.size())
-        all_features = all_features.mean(dim=1) 
-        return all_preds, all_trues, all_features
+    return_sequence = True # USED FOR HMM
+    if(not return_sequence):
+        print("hej")
+        with torch.no_grad():
+            for X, y in test:
+                y_pred = model(X)  
+                pred_classes = torch.argmax(y_pred, dim=1)  
+                all_preds.append(pred_classes.cpu())
+                all_trues.append(y.cpu())
+                all_features.append(X.cpu())
+            all_preds =torch.cat(all_preds)
+            all_trues =torch.cat(all_trues)
+            all_features =torch.cat(all_features)
+            print(all_trues)
+            print(all_features.size())
+            all_features = all_features.mean(dim=1) 
+            return all_preds, all_trues, all_features
+    else:
+        print("Uzywam HMM")
+        return
+        with torch.no_grad():
+            for X, y in test:
+                # HMM all output not just last hidden state
+                output = model(X, return_sequence=True)   # (batch, T, hidden)
+                logits = model.fc(output)                 # (batch, T, 4)
+                log_probs = torch.log_softmax(logits, -1)
+                
+                batch_paths = []
+                for b in range(log_probs.size(0)):
+                    preds_seq = log_probs[b]  
+                    path = viterbi_algorithm(preds_seq)
+                    batch_paths.append(torch.tensor(path))
+
+                batch_paths = torch.stack(batch_paths) 
+                    
+                all_preds.append(batch_paths.cpu())
+                all_trues.append(y.cpu())
+                all_features.append(X.cpu())
+
+            all_preds = torch.cat(all_preds, dim=0)
+            all_trues = torch.cat(all_trues, dim=0)
+            all_features = torch.cat(all_features, dim=0)
+
+            print(all_trues)
+            print(all_features.size())
+
+            all_features = all_features.mean(dim=1)
+            return all_preds, all_trues, all_features
+        
     
 def create_model(block):
     data_transform = transforms.Compose([
