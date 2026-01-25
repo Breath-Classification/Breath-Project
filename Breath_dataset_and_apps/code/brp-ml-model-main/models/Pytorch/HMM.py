@@ -29,11 +29,19 @@ def CalcPI():
     pi = torch.ones(N) / N
     return pi
 
+_cached_A = None
+_cached_pi = None
+
+def get_A_pi():
+    global _cached_A, _cached_pi
+    if _cached_A is None or _cached_pi is None:
+        _cached_A = CalcA()
+        _cached_pi = CalcPI()
+    return _cached_A, _cached_pi
+
 def viterbi_algorithm(preds,states=[0, 1, 2, 3],A=None,pi=None):
-    if A is None:
-        A = CalcA()    # tutaj dopiero wywołujemy funkcję
-    if pi is None:
-        pi = CalcPI()
+    if A is None or pi is None:
+        A, pi = get_A_pi()
     
     V = [{}]
     path = {}
@@ -57,3 +65,5 @@ def viterbi_algorithm(preds,states=[0, 1, 2, 3],A=None,pi=None):
     return path[state]
 
 
+if __name__ == "__main__":
+    print(CalcA())

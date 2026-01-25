@@ -112,38 +112,39 @@ def evaluate_model(model, test):
             print(all_trues)
             print(all_features.size())
             all_features = all_features.mean(dim=1) 
-            return all_preds, all_trues, all_features
+            return all_preds, all_trues, all_features,0
     else:
         print("Uzywam HMM")
-        return
+        all_paths = []
         with torch.no_grad():
             for X, y in test:
-                # HMM all output not just last hidden state
+                y_pred = model(X)  
+                pred_classes = torch.argmax(y_pred, dim=1)  
+                all_preds.append(pred_classes.cpu())
+                all_trues.append(y.cpu())
+                all_features.append(X.cpu())
+
                 output = model(X, return_sequence=True)   # (batch, T, hidden)
                 logits = model.fc(output)                 # (batch, T, 4)
                 log_probs = torch.log_softmax(logits, -1)
                 
-                batch_paths = []
-                for b in range(log_probs.size(0)):
-                    preds_seq = log_probs[b]  
-                    path = viterbi_algorithm(preds_seq)
-                    batch_paths.append(torch.tensor(path))
-
-                batch_paths = torch.stack(batch_paths) 
+                for i in range(BATCHES):
+                    path = viterbi_algorithm(log_probs[i])
+                    last_label = torch.tensor(path[-1]) 
+                    all_paths.append(last_label.cpu())
                     
-                all_preds.append(batch_paths.cpu())
-                all_trues.append(y.cpu())
-                all_features.append(X.cpu())
-
-            all_preds = torch.cat(all_preds, dim=0)
-            all_trues = torch.cat(all_trues, dim=0)
-            all_features = torch.cat(all_features, dim=0)
-
-            print(all_trues)
-            print(all_features.size())
-
-            all_features = all_features.mean(dim=1)
-            return all_preds, all_trues, all_features
+                #print("output shape:", output.shape)  
+                #print("logits shape:", logits.shape) 
+                #print("log_probs shape:", log_probs.shape)
+        all_preds =torch.cat(all_preds)
+        all_trues =torch.cat(all_trues)
+        all_features =torch.cat(all_features)
+        all_features = all_features.mean(dim=1) 
+        all_paths = torch.tensor(all_paths)
+        print(len(all_paths), all_paths.shape)
+        print(len(all_preds), all_preds.shape)
+        print(len(all_trues), all_trues.shape)
+        return all_preds, all_trues, all_features, all_paths
         
     
 def create_model(block):
@@ -238,13 +239,27 @@ def load_model_and_predict(model_path):
     model =create_model(block=30)
     train,test= create_train_test(block=30)
     model.load_state_dict(torch.load(model_path))
-    all_preds, all_trues, all_features = evaluate_model(model,test)
-    return all_preds,all_trues,all_features
+    all_preds, all_trues, all_features,all_paths = evaluate_model(model,test)
+    return all_preds,all_trues,all_features,all_paths
 
 
 if __name__ == "__main__":
-    y_pred, y_true, X = train_and_predict()
-    print("PRED:", y_pred)
-    print("TRUE:", y_true)
+    all_preds, all_trues, all_features, all_paths= load_model_and_predict("saved_models/Base.pth")
+    print("hello")
+    no_HMM=0
+    HMM=0
+    
+    
+    for i in range(len(all_preds)):
+        if all_preds[i]==all_trues[i]:
+           no_HMM+=1
+        if all_preds[i]==all_paths[i]:
+            HMM+=1
+    print(all_paths)
+    print(no_HMM*100/len(all_preds))
+    print(HMM*100/len(all_preds))
+    #y_pred, y_true, X = train_and_predict()
+    #print("PRED:", y_pred)
+    #print("TRUE:", y_true)
    
 
