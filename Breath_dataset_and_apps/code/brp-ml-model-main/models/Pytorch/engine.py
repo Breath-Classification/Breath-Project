@@ -9,6 +9,7 @@ from typing import Dict, List, Tuple
 import wandb
 import os
 import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from scripts.error_tolerance import acceptable_error
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 print("wandb.run before training:", wandb.run)

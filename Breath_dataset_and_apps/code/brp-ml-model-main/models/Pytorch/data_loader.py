@@ -6,6 +6,8 @@ from torch.utils.data import DataLoader
 from data_download import BlockDataset
 
 NUM_WORKERS = os.cpu_count()
+def signal_derivative():
+  print("okej")
 
 def create_dataloaders(
     transform: transforms.Compose, 
@@ -18,7 +20,10 @@ def create_dataloaders(
   #GAUSIAN NOISE AUGUMENT -> TRUE else AUGUMENT -> FALSE
   train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size, augment=False)
   test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size, augment=False)
-  
+  x, y = test_data[0]
+  print(x.shape, y.shape)
+
+
   train_dataloader = DataLoader(
       train_data,
       batch_size=batch_size,

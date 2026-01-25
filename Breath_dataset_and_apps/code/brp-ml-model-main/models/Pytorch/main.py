@@ -33,7 +33,7 @@ class SensorType(Enum):
     ACCELEROMETER = {"name": "acc", "size": 12}
     WIT_ACCELEROMETER = {"name": "acc", "size": 12}    
 NUM_EPOCHS = 60
-LEARNING_RATE = 0.001 #dla LSTM 0.001
+LEARNING_RATE = 0.01 #dla LSTM 0.001
 BATCHES = 32
 BLOCK_SIZE=[30]
 SENSOR = SensorType.TENSOMETER
@@ -71,7 +71,7 @@ def train_and_predict():
         model = create_model(block)
         train,test =create_train_test(block)
         
-
+        
         #loss_fn = FocalLossAdaptive(gamma=2)
         loss_fn = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
