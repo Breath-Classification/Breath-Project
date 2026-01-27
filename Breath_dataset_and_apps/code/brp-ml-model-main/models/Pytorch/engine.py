@@ -13,13 +13,9 @@ from torch.optim.lr_scheduler import StepLR
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 import wandb
-<<<<<<< HEAD
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-=======
-
->>>>>>> 98724b4 ( zmiany laptop)
 from scripts.error_tolerance import acceptable_error
 
 print("wandb.run before training:", wandb.run)
@@ -111,7 +107,9 @@ def train(model: torch.nn.Module,
           optimizer: torch.optim.Optimizer,
           loss_fn: torch.nn.Module,
           epochs: int,
-          device: torch.device) -> Dict[str, List]:
+          device: torch.device,
+          stop: bool,
+          stop_point: float) -> Dict[str, List]:
 
   results = {
     "epoch":[],
@@ -179,11 +177,22 @@ def train(model: torch.nn.Module,
       results["test_loss"].append(test_loss)
       results["test_acc"].append(test_acc)
       results["max_test_acc"].append(maksimum_test_acc)
+      
+      if(stop==True and test_acc>=stop_point):
+        print("przebilem")
+        filename = input("input name of the saved model")
+        torch.save(model.state_dict(), f"saved_models/{filename}.pth")
+        break
 
+      print("testaaaaaa")
   wandb.summary.update({
     "max_test_acc":best_scores["max_test_acc"],
     "max_train_acc":best_scores["max_train_acc"],
     "final_test_loss":best_scores["final_test_loss"],
     "final_train_loss":best_scores["final_train_loss"]
   })
+  
+  
+  
+  
   return results

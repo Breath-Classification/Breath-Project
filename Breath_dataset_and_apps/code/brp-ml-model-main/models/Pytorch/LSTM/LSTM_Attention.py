@@ -32,7 +32,7 @@ class LSTM_ATTENTION(nn.Module):
         
         self.fc = nn.Linear(hidden_units, output_shape)
 
-    def forward(self, x):
+    def forward(self, x, return_sequence=False):
         
         x = x.permute(0,2,1) #change dimensions to fit into conv1d
         
@@ -42,14 +42,24 @@ class LSTM_ATTENTION(nn.Module):
             
         output, (h_n, c_n) = self.lstm(x)
         
-        query = h_n[-1].unsqueeze(1)  
-        key = output                  
-        value = output   
-                    
-        x = F.scaled_dot_product_attention(query, key, value) #Attention
+        if(return_sequence):
+            
+            query = output
+            key = output                  
+            value = output   
+            
+            x = F.scaled_dot_product_attention(query, key, value)
+            return x
         
-        x = x.squeeze(1)
-        
+        else:
+            query = h_n[-1].unsqueeze(1)  
+            key = output                  
+            value = output   
+                        
+            x = F.scaled_dot_product_attention(query, key, value) #Attention
+            
+            x = x.squeeze(1)
+            
 
-        x = self.fc(x)
-        return x
+            x = self.fc(x)
+            return x

@@ -24,8 +24,9 @@ from enum import Enum
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import os
-
-
+#scripts
+from HMM import viterbi_algorithm
+from scripts.error_tolerance import acceptable_error
 
 #Constants
 class SensorType(Enum):
@@ -76,13 +77,13 @@ def train_and_predict():
         loss_fn = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-        engine.train(model, train, test, optimizer, loss_fn, NUM_EPOCHS, "cpu")
+        engine.train(model, train, test, optimizer, loss_fn, NUM_EPOCHS, "cpu", True, 0.925) #stop i set 
 
         wandb.finish()
     
     #saving model
     if use_wandb == 'n':
-        filename = input("input name of the saved model")
+        filename = input("input name of the saved model ")
         torch.save(model.state_dict(), f"saved_models/{filename}.pth")
     else:
         torch.save(model.state_dict(), f"saved_models/Class_Weightening_{block}.pth")
@@ -96,7 +97,7 @@ def evaluate_model(model, test):
 
     all_features = []
     model.eval()
-    return_sequence = True # USED FOR HMM
+    return_sequence = False # USED FOR HMM
     if(not return_sequence):
         print("hej")
         with torch.no_grad():
@@ -114,12 +115,8 @@ def evaluate_model(model, test):
             all_features = all_features.mean(dim=1) 
             return all_preds, all_trues, all_features,0
     else:
-<<<<<<< HEAD
         print("Uzywam HMM")
         all_paths = []
-=======
-
->>>>>>> 98724b4 ( zmiany laptop)
         with torch.no_grad():
             for X, y in test:
                 y_pred = model(X)  
@@ -248,22 +245,29 @@ def load_model_and_predict(model_path):
 
 
 if __name__ == "__main__":
-    all_preds, all_trues, all_features, all_paths= load_model_and_predict("saved_models/Base.pth")
+    
+    '''
+    all_preds, all_trues, all_features, all_paths= load_model_and_predict("saved_models/BaseB.pth")
     print("hello")
     no_HMM=0
     HMM=0
     
-    
     for i in range(len(all_preds)):
-        if all_preds[i]==all_trues[i]:
+        if all_preds[i]==all_trues[i] or acceptable_error(all_preds,all_trues,i,EPSILON=2)==True:
            no_HMM+=1
-        if all_preds[i]==all_paths[i]:
+        if all_trues[i]==all_paths[i] or acceptable_error(all_paths,all_trues,i,EPSILON=2)==True:
             HMM+=1
     print(all_paths)
     print(no_HMM*100/len(all_preds))
     print(HMM*100/len(all_preds))
-    #y_pred, y_true, X = train_and_predict()
-    #print("PRED:", y_pred)
-    #print("TRUE:", y_true)
+    '''
+    
+    
+    y_pred, y_true, X = train_and_predict()
+    print("PRED:", y_pred)
+    print("TRUE:", y_true)
+    
+    
+    
    
 

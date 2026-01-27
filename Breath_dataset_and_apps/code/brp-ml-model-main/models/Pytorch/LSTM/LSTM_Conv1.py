@@ -34,7 +34,7 @@ class LSTM_CONV1(nn.Module):
         
         self.fc = nn.Linear(hidden_units, output_shape)
 
-    def forward(self, x):
+    def forward(self, x, return_sequence=False):
         
         x = x.permute(0,2,1) #change dimensions to fit into conv1d
         
@@ -43,6 +43,9 @@ class LSTM_CONV1(nn.Module):
         x = x.permute(0,2,1)
             
         output, (h_n, c_n) = self.lstm(x)
+        
+        if(return_sequence):
+            return output
         
         x = h_n[-1]
 

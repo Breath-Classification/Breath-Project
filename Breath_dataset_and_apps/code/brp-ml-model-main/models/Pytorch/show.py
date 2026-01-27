@@ -14,10 +14,13 @@ block_size =30
 
 if __name__ == "__main__":
 
-    y_pred,y_true,X = load_model_and_predict(model_path="saved_models/GruModel200.pth")
+    y_pred,y_true,X,_ = load_model_and_predict(model_path="saved_models/BaseB.pth")
     
+    print(X.size(), "first")
+    X = X[:, :6] # zrobione dla pochodnych
+
     X= X[:, -1] # size
-   
+    print(X.size(), "second")
    
     interactive_plot(X,y_pred,y_true)
     
