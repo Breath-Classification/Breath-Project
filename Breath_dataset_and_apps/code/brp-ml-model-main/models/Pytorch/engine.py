@@ -2,16 +2,26 @@
 """
 Contains functions for training and testing a PyTorch model.  https://github.com/mrdbourke/pytorch-deep-learning
 """
+import os
+import sys
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+)
 import torch
 from torch.optim.lr_scheduler import StepLR
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 import wandb
+<<<<<<< HEAD
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+=======
+
+>>>>>>> 98724b4 ( zmiany laptop)
 from scripts.error_tolerance import acceptable_error
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
 print("wandb.run before training:", wandb.run)
 
 EPSILON = 2

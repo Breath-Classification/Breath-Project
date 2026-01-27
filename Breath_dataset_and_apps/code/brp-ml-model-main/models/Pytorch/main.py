@@ -24,7 +24,7 @@ from enum import Enum
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import os
-from HMM import viterbi_algorithm
+
 
 
 #Constants
@@ -114,8 +114,12 @@ def evaluate_model(model, test):
             all_features = all_features.mean(dim=1) 
             return all_preds, all_trues, all_features,0
     else:
+<<<<<<< HEAD
         print("Uzywam HMM")
         all_paths = []
+=======
+
+>>>>>>> 98724b4 ( zmiany laptop)
         with torch.no_grad():
             for X, y in test:
                 y_pred = model(X)  
