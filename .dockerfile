@@ -73,6 +73,7 @@ RUN pip install --upgrade pip setuptools wheel
 RUN pip install --upgrade -r /workspace/requirements.txt
 
 RUN pip install wandb
+RUN pip install tqdm
 WORKDIR /home/workspace
 
 # Default command: open a shell

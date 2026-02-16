@@ -2,6 +2,14 @@
 xhost +local:docker
 
 
+## Tworzenie venva graficznego
+python -m venv venv_streamlit --system-site-packages
+source venv_streamlit/bin/activate
+pip install --upgrade pip
+pip install streamlit
+streamlit run local_app.py --server.address=0.0.0.0 --server.port=8501
+ctr+c 
+deactivate
 
 1) GRU
 2) LSTM
