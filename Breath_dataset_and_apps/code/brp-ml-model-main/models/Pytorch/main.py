@@ -33,7 +33,7 @@ class SensorType(Enum):
     TENSOMETER = {"name": "tens", "size": 6}
     ACCELEROMETER = {"name": "acc", "size": 12}
     WIT_ACCELEROMETER = {"name": "acc", "size": 12}    
-NUM_EPOCHS = 60
+NUM_EPOCHS = 20
 LEARNING_RATE = 0.01 #dla LSTM 0.001
 BATCHES = 32
 BLOCK_SIZE=[30]
@@ -41,9 +41,11 @@ SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 TARGET = 2
 
-#Usage of Wandb 
-use_wandb = input("Włączyć W&B? (y/n): ").strip().lower()
+#Usage of Wandb
 
+
+#use_wandb = input("Włączyć W&B? (y/n): ").strip().lower()
+use_wandb='n'
 print (use_wandb)
 if use_wandb != "y":
     os.environ["WANDB_DISABLED"] = "true"

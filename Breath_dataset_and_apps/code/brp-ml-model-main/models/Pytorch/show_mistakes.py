@@ -7,8 +7,10 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-if __name__ == "__main__":
-    y_pred,y_true,X = load_model_and_predict("saved_models/model.pth")
+def mistakes_table(model_path):
+    y_pred,y_true,_,_ = load_model_and_predict(model_path)
+    print("sciezka")
+    print(model_path)
     mistakes = {
     "blue-green": 0,
     "blue-red": 0,
@@ -39,5 +41,7 @@ if __name__ == "__main__":
                 mistakes["blue-yellow"] += 1
     labels = list(mistakes.keys())
     values = list(mistakes.values())
-    plt.bar(labels,values)
-    plt.show()
+    print("show_matrix end")
+    return labels, values
+   # plt.bar(labels,values)
+   # plt.show()
