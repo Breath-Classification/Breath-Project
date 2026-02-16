@@ -5,13 +5,12 @@ import sys
 sys.path.append("/workspaces/Breath-Project/Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch")
 from show_mistakes import mistakes_table
 from confusion_matrix import conf_Matrix
+from main import train_and_predict
 
 st.title("ML Model Tester")
 
-if "show_mistakes_clicked" not in st.session_state:
-    st.session_state.show_mistakes_clicked = False
-if "confusion_matrix_clicked" not in st.session_state:
-    st.session_state.confusion_matrix_clicked = False
+if "page" not in st.session_state:
+    st.session_state.page = None
 
 def starting_page():
 
@@ -20,19 +19,28 @@ def starting_page():
         col11,col12 = st.columns(2)
         col21,col22 =st.columns(2)
 
-        if(col11.button("main")):
-            st.write("main")
         if(col12.button("show")):
             st.write("show")
-        if(col21.button("show_mistakes")):
-            st.session_state.show_mistakes_clicked = True
-        if(col22.button("confusion_matrix")):
-            st.session_state.confusion_matrix_clicked = True
+      
             
-        if st.session_state.show_mistakes_clicked:
+        if col11.button("main"):
+            st.session_state.page = "main"
+
+        if col21.button("show_mistakes"):
+            st.session_state.page = "mistakes"
+
+        if col22.button("confusion_matrix"):
+            st.session_state.page = "matrix"
+
+        if st.session_state.page == "mistakes":
             mistakes()
-        if st.session_state.confusion_matrix_clicked:
+
+        elif st.session_state.page == "matrix":
             matrix()
+
+        elif st.session_state.page == "main":
+            conf_hiperparametres()
+
 
 def mistakes():
     path = Path("saved_models/")
@@ -66,6 +74,81 @@ def matrix():
             st.pyplot(fig)
             st.session_state.confusion_matrix_clicked = False
     
+def conf_hiperparametres():
+    block_size = st.number_input(
+        "Block size",
+        min_value=1,
+        step=1
+    )
+
+    batch_options = [2**i for i in range(0, 9)]  # 1,2,4,...,256
+    batch_size = st.selectbox(
+        "Batch size",
+        batch_options
+    )
+
+    # target – liczby od 0 do 5
+    target = st.selectbox(
+        "Target class",
+        list(range(0, 6))
+    )
+    hidden_units = st.number_input(
+        "Hidden units",
+        min_value=2,
+        max_value=64,
+        step=2,
+        value=64
+    )
+    output_shape = st.number_input(
+        "Hidden units",
+        min_value=4,
+        max_value=4,
+        step=2,
+        value=4
+    )
+
+
+    
+    models = [
+        "LSTM_ATTENTION",
+        "LSTM_STACKED",
+        "GruModel",
+        "LSTM_BIDIRECTIONAL",
+        "GRUAttentionModel",
+        "LSTM_BASE",
+        "LSTM_DROPOUT",
+        "LSTM_CONV1",
+        "Transformer"
+    ]
+
+        
+    model_type = st.selectbox("Choose model:", models)
+
+    num_epchos = st.number_input(
+        "num_epchos",
+        min_value=1,
+        max_value=512,
+        step=1,
+        value=32
+    )
+    learning_rate = st.number_input(
+    "Learning rate",
+    min_value=0.0001,
+    max_value=1.0,
+    value=0.01,
+    step=0.0001,
+    format="%.4f"
+    )
+    pom =[
+        "nie",
+        "tak"
+    ]
+    start = st.selectbox("Start", pom)
+
+    if(start!='nie'):
+        if st.button("Train Configuration"):
+            train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos)
+            st.session_state.main_clicked=False
 
 
 starting_page()

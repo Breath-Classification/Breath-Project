@@ -51,44 +51,44 @@ if use_wandb != "y":
     os.environ["WANDB_DISABLED"] = "true"
 
 
-def train_and_predict():
-    for i, block in enumerate(BLOCK_SIZE):
-        
-        #logs
-        wandb.init(
-            mode="online" if  use_wandb=='y' else "disabled",
-            project="GRU-optymalization",
-            name=f"Transformer {block} ",
-            group="Transformers ",
-            config={
-                "epochs": NUM_EPOCHS,
-                "batch_size": BATCHES,
-                "lr": LEARNING_RATE,
-                "block_size":BLOCK_SIZE,
-                "model":"Transformer",
-                "sensor":SENSOR_NAME,
-                "loss_fn":"CrossEntropyLoss",
-                "optimizer":"Adam"
-            }
-        )
-        model = create_model(block)
-        train,test =create_train_test(block)
-        
-        
-        #loss_fn = FocalLossAdaptive(gamma=2)
-        loss_fn = torch.nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos):
+   
+    #logs
+    wandb.init(
+        mode="online" if  use_wandb=='y' else "disabled",
+        project="GRU-optymalization",
+        name=f"Transformer {block_size} ",
+        group="Transformers ",
+        config={
+            "epochs": NUM_EPOCHS,
+            "batch_size": BATCHES,
+            "lr": LEARNING_RATE,
+            "block_size":BLOCK_SIZE,
+            "model":"Transformer",
+            "sensor":SENSOR_NAME,
+            "loss_fn":"CrossEntropyLoss",
+            "optimizer":"Adam"
+        }
+    )
+    train,test =config_dataloaders(block_size,batch_size,target)
+    model = create_model(hidden_units,output_shape,model_type,train,test)
+    
+    
+    
+    #loss_fn = FocalLossAdaptive(gamma=2)
+    loss_fn = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-        engine.train(model, train, test, optimizer, loss_fn, NUM_EPOCHS, "cpu", True, 0.925) #stop i set 
+    engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, 0.925) #stop i set 
 
-        wandb.finish()
+    wandb.finish()
     
     #saving model
     if use_wandb == 'n':
         filename = input("input name of the saved model ")
         torch.save(model.state_dict(), f"saved_models/{filename}.pth")
     else:
-        torch.save(model.state_dict(), f"saved_models/Class_Weightening_{block}.pth")
+        torch.save(model.state_dict(), f"saved_models/Class_Weightening_{block_size}.pth")
     all_preds, all_trues, all_features = evaluate_model(model,test)
     return all_preds, all_trues, all_features
     
@@ -150,71 +150,63 @@ def evaluate_model(model, test):
         return all_preds, all_trues, all_features, all_paths
         
     
-def create_model(block):
+def config_dataloaders(block_size,batch_size,target):
     data_transform = transforms.Compose([
             transforms.Resize((64, 64)),
             transforms.ToTensor()
         ])
 
     train, test = create_dataloaders(transform=data_transform,
-                                         batch_size=BATCHES,
-                                         block_size=block,
-                                         target=TARGET)
+                                         batch_size=batch_size,
+                                         block_size=block_size,
+                                         target=target)
+
+    return train,test
+
+def create_model(hidden_units,output_shape,model_type,train,test):
+    
+    
        
     X_batch, y_batch = next(iter(train))
         
         
     input_shape = X_batch.shape[2]
-    hidden_units = 64
-    output_shape = 4
+
 
     if use_wandb == 'n':
-        print("Model:")
-        print("1 - LSTM_ATTENTION")
-        print("2 - LSTM_STACKED")
-        print("3 - GruModel")
-        print("4 - LSTM_BIDIRECTIONAL")
-        print("5 - GRUAttentionModel")
-        print("6 - LSTM_BASE")
-        print("7 - LSTM_DROPOUT")
-        print("8 - LSTM_CONV1")
-        print("9 - Transformer")
-
-        model_choice = input().strip()
-
-        if model_choice == "1":
+        if model_type == "LSTM_ATTENTION":
             model = LSTM_ATTENTION(input_shape=input_shape,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
-        elif model_choice == "2":
+        elif model_type == "LSTM_STACKED":
             model = LSTM_STACKED(input_shape=input_shape,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
-        elif model_choice == "3":
+        elif model_type == "GruModel":
             model = GruModel(input_shape=input_shape,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
-        elif model_choice == "4":
+        elif model_type == "LSTM_BIDIRECTIONAL":
             model = LSTM_BIDIRECTIONAL(input_shape=input_shape,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
-        elif model_choice == "5":
+        elif model_type == "GRUAttentionModel":
             model = GRUAttentionModel(input_shape=input_shape,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
-        elif model_choice == "6":
+        elif model_type == "LSTM_BASE":
             model = LSTM_BASE(input_shape=input_shape,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
-        elif model_choice == "7":
+        elif model_type == "LSTM_DROPOUT":
             model = LSTM_DROPOUT(input_shape=input_shape,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
-        elif model_choice == "8":
+        elif model_type == "LSTM_CONV1":
             model = LSTM_CONV1(input_shape=input_shape,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
-        elif model_choice == "9":
+        elif model_type == "Transformer":
             model = Transformer(input_shape=input_shape,d_model=32,
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
