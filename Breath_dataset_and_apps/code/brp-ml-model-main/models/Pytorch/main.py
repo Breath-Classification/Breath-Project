@@ -24,6 +24,7 @@ from enum import Enum
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import os
+import json
 #scripts
 from HMM import viterbi_algorithm
 from scripts.error_tolerance import acceptable_error
@@ -82,17 +83,35 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,mod
     engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, 0.925) #stop i set 
 
     wandb.finish()
+
     
+    config = {
+        "block_size": block_size,
+        "batch_size": batch_size,
+        "target": target,
+        "hidden_units": hidden_units,
+        "output_shape": output_shape,
+        "model_type": model_type,
+        "learning_rate": learning_rate,
+        "num_epochs": num_epchos
+    }
+    
+    save_model(model,config)
+
+    all_preds, all_trues, all_features = evaluate_model(model,test)
+    return all_preds, all_trues, all_features
+    
+def save_model(model, config):
     #saving model
     if use_wandb == 'n':
         filename = input("input name of the saved model ")
         torch.save(model.state_dict(), f"saved_models/{filename}.pth")
     else:
         torch.save(model.state_dict(), f"saved_models/Class_Weightening_{block_size}.pth")
-    all_preds, all_trues, all_features = evaluate_model(model,test)
-    return all_preds, all_trues, all_features
     
-   
+    with open(f"saved_models/{filename}.json", "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4)
+
 def evaluate_model(model, test):
     all_preds = []
     all_trues = []
@@ -165,13 +184,8 @@ def config_dataloaders(block_size,batch_size,target):
 
 def create_model(hidden_units,output_shape,model_type,train,test):
     
-    
-       
     X_batch, y_batch = next(iter(train))
-        
-        
     input_shape = X_batch.shape[2]
-
 
     if use_wandb == 'n':
         if model_type == "LSTM_ATTENTION":
@@ -218,22 +232,28 @@ def create_model(hidden_units,output_shape,model_type,train,test):
                                     output_shape=output_shape)
     return model
     
-def create_train_test(block):
-    data_transform = transforms.Compose([
-            transforms.Resize((64, 64)),
-            transforms.ToTensor()
-        ])
 
-    train, test = create_dataloaders(transform=data_transform,
-                                         batch_size=BATCHES,
-                                         block_size=block,
-                                         target=TARGET)
-    return train,test
 def load_model_and_predict(model_path):
+
+    filename = model_path[:-4]
+    with open(f"{filename}.json", "r", encoding="utf-8") as f:
+        config = json.load(f)
+
     
-    model =create_model(block=30)
-    train,test= create_train_test(block=30)
+    block_size =config["block_size"]
+    batch_size =config["batch_size"]
+    target =config["target"]
+    hidden_units =config["hidden_units"]
+    output_shape =config["output_shape"]
+    model_type =config["model_type"]
+    learning_rate =config["learning_rate"]
+    num_epchos =config["num_epochs"]
+
+    train,test= config_dataloaders(block_size,batch_size,target)
+    model = create_model(hidden_units,output_shape,model_type,train,test)
+    
     model.load_state_dict(torch.load(model_path))
+
     all_preds, all_trues, all_features,all_paths = evaluate_model(model,test)
     return all_preds,all_trues,all_features,all_paths
 
