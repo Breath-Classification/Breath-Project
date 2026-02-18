@@ -78,7 +78,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,mod
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    results =engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, 0.925) #stop i set 
+    results =engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.925) #stop i set 
 
     wandb.finish()
 

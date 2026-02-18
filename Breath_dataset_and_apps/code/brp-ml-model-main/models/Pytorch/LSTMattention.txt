@@ -1,0 +1,2 @@
+Best is trial 28 with value: 0.9394782608695652.
+Najlepsze hiperparametry: {'lr': 0.0017026536091816213, 'hidden_units': 112, 'batch_size': 128, 'block_size': 35, 'dropout': 0.355759455727444, 'num_layers': 2}
