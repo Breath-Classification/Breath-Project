@@ -6,6 +6,7 @@ sys.path.append("/workspaces/Breath-Project/Breath_dataset_and_apps/code/brp-ml-
 from show_mistakes import mistakes_table
 from confusion_matrix import conf_Matrix
 from main import train_and_predict
+from show import plot_results
 
 st.title("ML Model Tester")
 
@@ -20,7 +21,7 @@ def starting_page():
         col21,col22 =st.columns(2)
 
         if(col12.button("show")):
-            st.write("show")
+             st.session_state.page = "show"
       
             
         if col11.button("main"):
@@ -40,6 +41,9 @@ def starting_page():
 
         elif st.session_state.page == "main":
             conf_hiperparametres()
+
+        elif st.session_state.page == "show":
+            interactive_plot()
 
 
 def mistakes():
@@ -107,8 +111,6 @@ def conf_hiperparametres():
         value=4
     )
 
-
-    
     models = [
         "LSTM_ATTENTION",
         "LSTM_STACKED",
@@ -150,5 +152,23 @@ def conf_hiperparametres():
             train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos)
             st.session_state.main_clicked=False
 
+
+def interactive_plot():
+    path = Path("saved_models/")
+    files = [f.name for f in path.glob("*.pth")]
+    files = ["--- choose model ---"]+files
+    selected_file = st.selectbox("Choose saved model:", files)
+    
+    if "analysis_started" not in st.session_state:
+        st.session_state.analysis_started = False
+
+    if selected_file != "--- choose model ---":
+        if st.button("Run Interactive Analysis"):
+            st.session_state.analysis_started = True
+            st.session_state.selected_model = selected_file
+        if st.session_state.analysis_started:
+                plot_results(f"saved_models/{st.session_state.selected_model}")
+
+                
 
 starting_page()
