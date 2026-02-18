@@ -74,6 +74,7 @@ RUN pip install --upgrade -r /workspace/requirements.txt
 
 RUN pip install wandb
 RUN pip install tqdm
+RUN pip install optuna
 WORKDIR /home/workspace
 
 # Default command: open a shell
