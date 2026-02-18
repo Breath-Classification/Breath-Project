@@ -3,7 +3,17 @@ from torch.utils.data import Dataset
 import numpy as np
 from keras.src.utils import to_categorical
 
-class SequenceDataset(Dataset): #dane ladowane sekwencyjnie
+'''
+ The purpose of this code is to read data from a file containing accelerometer/tensometr measurements
+ and convert them into tensors.
+ SequenceDataset loads the data sequentially — each reading X is assigned a specific class y.
+ BlockDataset loads the data in blocks — readings are grouped into blocks using a sliding window approach,
+ and each block is assigned the class of its last element.
+ Information from the first and second derivatives of the signal is added to the data.
+ There is also an option to add Gaussian noise.
+'''
+
+class SequenceDataset(Dataset): #Data loaded sequentially
     def __init__(self, filename, expand_dims=True, convert_to_categorical=False):
        
         train_sequences = []
@@ -23,7 +33,7 @@ class SequenceDataset(Dataset): #dane ladowane sekwencyjnie
             num_classes = len(np.unique(self.y))
             self.y = to_categorical(self.y, num_classes=num_classes)
            
-
+        #Convert data to tensor
         self.X = torch.tensor(self.X, dtype=torch.float32)
         self.y = torch.tensor(self.y, dtype=torch.long if not convert_to_categorical else torch.float32)
     
@@ -34,7 +44,7 @@ class SequenceDataset(Dataset): #dane ladowane sekwencyjnie
         return self.X[idx], self.y[idx]
     
     
-class BlockDataset(Dataset): #dane ladowane blokowo
+class BlockDataset(Dataset): #Sliding window
     def __init__(self, filename, block_size, convert_to_categorical=False, sigma=0.01, augment=True):
         
         self.sigma = sigma
@@ -50,10 +60,10 @@ class BlockDataset(Dataset): #dane ladowane blokowo
         y = data[:, -1]
 
         
-        blocks_X, blocks_y = [], []  #tworzenie blokow
+        blocks_X, blocks_y = [], []  #Create blocks
         for i in range(len(X) - block_size + 1):
             blocks_X.append(X[i:i + block_size])
-            blocks_y.append(y[i + block_size - 1]) #etykieta bloku taka jak ostatni element 
+            blocks_y.append(y[i + block_size - 1]) 
 
         self.X = np.array(blocks_X)  
         self.y = np.array(blocks_y)
@@ -62,6 +72,7 @@ class BlockDataset(Dataset): #dane ladowane blokowo
             num_classes = len(np.unique(self.y))
             self.y = to_categorical(self.y, num_classes=num_classes)
 
+        #Convert data to tensor
         self.X = torch.tensor(self.X, dtype=torch.float32)
         self.y = torch.tensor(self.y, dtype=torch.long if not convert_to_categorical else torch.float32)
 
@@ -90,70 +101,3 @@ class BlockDataset(Dataset): #dane ladowane blokowo
 
         return x, y
     
-class BlockDatasetHalf(Dataset): #dane ladowane blokowo
-    def __init__(self, filename, block_size, convert_to_categorical=False):
-        
-        data = []
-        with open(filename, "r") as f:
-            for line in f.readlines():
-                data.append([float(v) for v in line.strip().split(",")])
-        data = np.array(data)
-
-        X = data[:, :-1]
-        y = data[:, -1]
-
-        
-        blocks_X, blocks_y = [], []  #tworzenie blokow
-        for i in range(len(X) - block_size + 1):
-            blocks_X.append(X[i:i + block_size])
-            blocks_y.append(y[i + (block_size - 1)//2]) #etykieta bloku taka jak srodkowy element 
-
-        self.X = np.array(blocks_X)  
-        self.y = np.array(blocks_y)
-
-        if convert_to_categorical:
-            num_classes = len(np.unique(self.y))
-            self.y = to_categorical(self.y, num_classes=num_classes)
-
-        self.X = torch.tensor(self.X, dtype=torch.float32)
-        self.y = torch.tensor(self.y, dtype=torch.long if not convert_to_categorical else torch.float32)
-
-    def __len__(self):
-        return len(self.X)
-
-    def __getitem__(self, idx):
-        return self.X[idx], self.y[idx]
-
-class BlockTargetDataset(Dataset): #dane ladowane blokowo i z wykorzystaniem wielu y
-    def __init__(self, filename, block_size, target_size, convert_to_categorical=False):
-        
-        data = []
-        with open(filename, "r") as f:
-            for line in f.readlines():
-                data.append([float(v) for v in line.strip().split(",")])
-        data = np.array(data)
-
-        X = data[:, :-1]
-        y = data[:, -1]
-
-        
-        blocks_X, blocks_y = [], []  #tworzenie blokow
-        for i in range(len(X) - block_size -target_size+ 1):
-            blocks_X.append(X[i:i + block_size])
-            blocks_y.append(y[i + block_size - 1 : i+ block_size+target_size]) #tyle etykiet ile wynosi target
-
-        self.X = np.array(blocks_X)  
-        self.y = np.array(blocks_y)
-
-        if convert_to_categorical:
-            num_classes = len(np.unique(self.y))
-            self.y = to_categorical(self.y, num_classes=num_classes)
-
-        self.X = torch.tensor(self.X, dtype=torch.float32)
-        self.y = torch.tensor(self.y, dtype=torch.long if not convert_to_categorical else torch.float32)
-
-    def __len__(self):
-        return len(self.X)
-
-    def __getitem__(self, idx):
-        return self.X[idx], self.y[idx]

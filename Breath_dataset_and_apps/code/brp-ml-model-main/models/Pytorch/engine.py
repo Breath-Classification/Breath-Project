@@ -1,34 +1,29 @@
 
 """
 Contains functions for training and testing a PyTorch model.  https://github.com/mrdbourke/pytorch-deep-learning
+Code is adapted for the dataset, extended with an error tolerance mechanism, 
+returns accuracy and other parametres.
 """
-import os
-import sys
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-)
 import torch
-from torch.optim.lr_scheduler import StepLR
+
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 import wandb
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from scripts.error_tolerance import acceptable_error
 
-print("wandb.run before training:", wandb.run)
 
-EPSILON = 2
-def train_step(model: torch.nn.Module, 
+
+EPSILON = 2 #Constant that defines when an error can be considered acceptable 
+            #(in this case, up to 2 readings forward or backward)
+
+def train_step(model: torch.nn.Module,  #Step where the model trains without considering error correction
                dataloader: torch.utils.data.DataLoader, 
                loss_fn: torch.nn.Module, 
                optimizer: torch.optim.Optimizer,
                device: torch.device) -> Tuple[float, float]:
 
   model.train()
-  
   train_loss, train_acc = 0, 0
   
   for batch, (X, y) in enumerate(dataloader):
@@ -55,16 +50,13 @@ def train_step(model: torch.nn.Module,
 
 
     
-def test_step(model: torch.nn.Module, 
+def test_step(model: torch.nn.Module,   # Step where the model's performance is evaluated on the test data taking error correction into account
               dataloader: torch.utils.data.DataLoader, 
               loss_fn: torch.nn.Module,
               device: torch.device) -> Tuple[float, float]:
 
   model.eval() 
-  
-
   test_loss, test_acc = 0, 0
-  
   correct = 0
   total = 0
   with torch.inference_mode():
@@ -73,10 +65,14 @@ def test_step(model: torch.nn.Module,
          
           X, y = X.to(device), y.to(device)
   
-          
           test_pred_logits = model(X)
           test_pred_labels = test_pred_logits.argmax(dim=1)
           batch_loss = 0.0
+
+          #Error tolerance
+          #When the prediction error occurs at the boundary of two classes 
+          #and is within a distance of at most EPSILON, 
+          #we do not count this prediction as incorrect
           for i in range(len(y)):
             if(test_pred_labels[i]!=y[i]):
               if(acceptable_error(test_pred_labels,y,i, EPSILON)):
@@ -91,17 +87,13 @@ def test_step(model: torch.nn.Module,
                 if acceptable_error(test_pred_labels, y, i,EPSILON):
                     correct += 1  
             total += 1
-          
-         
           test_loss += batch_loss
-          #test_acc += ((test_pred_labels == y).sum().item()/len(test_pred_labels))
-          
-          
+        
   test_loss = test_loss / len(dataloader)
   test_acc = correct / total 
   return test_loss, test_acc
 
-def train(model: torch.nn.Module, 
+def train(model: torch.nn.Module,                      #Main training loop
           train_dataloader: torch.utils.data.DataLoader, 
           test_dataloader: torch.utils.data.DataLoader, 
           optimizer: torch.optim.Optimizer,
@@ -128,8 +120,7 @@ def train(model: torch.nn.Module,
   
   maksimum_test_acc =0
   maksimum_train_acc =0
-  #scheduler = StepLR(optimizer, step_size=epochs//2, gamma=0.5)
-  #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+
   for epoch in tqdm(range(epochs)):
       train_loss, train_acc = train_step(model=model,
                                           dataloader=train_dataloader,
@@ -140,7 +131,9 @@ def train(model: torch.nn.Module,
           dataloader=test_dataloader,
           loss_fn=loss_fn,
           device=device)
-      #scheduler.step(test_loss)
+      
+      #Save the results to the results dictionary and to wandb
+
       wandb.log({
           "epoch":epoch,
           "test_accuracy":test_acc,
@@ -178,21 +171,17 @@ def train(model: torch.nn.Module,
       results["test_acc"].append(test_acc)
       results["max_test_acc"].append(maksimum_test_acc)
       
+      #Save the model when its performance exceeds the stop_point
       if(stop==True and test_acc>=stop_point):
-        print("przebilem")
         filename = input("input name of the saved model")
         torch.save(model.state_dict(), f"saved_models/{filename}.pth")
         break
 
-      print("testaaaaaa")
   wandb.summary.update({
     "max_test_acc":best_scores["max_test_acc"],
     "max_train_acc":best_scores["max_train_acc"],
     "final_test_loss":best_scores["final_test_loss"],
     "final_train_loss":best_scores["final_train_loss"]
   })
-  
-  
-  
   
   return results
