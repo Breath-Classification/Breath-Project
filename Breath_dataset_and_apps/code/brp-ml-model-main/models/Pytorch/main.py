@@ -80,10 +80,12 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,mod
     loss_fn = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, 0.925) #stop i set 
+    results =engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, 0.925) #stop i set 
 
     wandb.finish()
 
+    #optuna tuning 
+    return results
     
     config = {
         "block_size": block_size,
@@ -98,7 +100,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,mod
     
     save_model(model,config)
 
-    all_preds, all_trues, all_features = evaluate_model(model,test)
+    all_preds, all_trues, all_features,_ = evaluate_model(model,test)
     return all_preds, all_trues, all_features
     
 def save_model(model, config):
