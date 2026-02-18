@@ -75,6 +75,8 @@ RUN pip install --upgrade -r /workspace/requirements.txt
 RUN pip install wandb
 RUN pip install tqdm
 RUN pip install optuna
+RUN apt-get update 
+RUN apt-get install -y openssh-client
 WORKDIR /home/workspace
 
 # Default command: open a shell
