@@ -4,6 +4,13 @@
     "context": "..",
     "dockerfile": "../.dockerfile"
   },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  },
   "overrideCommand": false,
   "runArgs": [
     "--gpus=all",
