@@ -52,7 +52,7 @@ if use_wandb != "y":
     os.environ["WANDB_DISABLED"] = "true"
 
 
-def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos):
+def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos, dropout =0, num_layers=2):
    
     #logs
     wandb.init(
@@ -72,7 +72,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,mod
         }
     )
     train,test =config_dataloaders(block_size,batch_size,target)
-    model = create_model(hidden_units,output_shape,model_type,train,test)
+    model = create_model(hidden_units,output_shape,model_type,train,test,dropout,num_layers)
     
     
     
@@ -184,7 +184,7 @@ def config_dataloaders(block_size,batch_size,target):
 
     return train,test
 
-def create_model(hidden_units,output_shape,model_type,train,test):
+def create_model(hidden_units,output_shape,model_type,train,test, dropout=0, num_layers=2):
     
     X_batch, y_batch = next(iter(train))
     input_shape = X_batch.shape[2]
@@ -193,7 +193,9 @@ def create_model(hidden_units,output_shape,model_type,train,test):
         if model_type == "LSTM_ATTENTION":
             model = LSTM_ATTENTION(input_shape=input_shape,
                                     hidden_units=hidden_units,
-                                    output_shape=output_shape)
+                                    output_shape=output_shape,
+                                    dropout=dropout,
+                                    num_layers=num_layers)
         elif model_type == "LSTM_STACKED":
             model = LSTM_STACKED(input_shape=input_shape,
                                     hidden_units=hidden_units,

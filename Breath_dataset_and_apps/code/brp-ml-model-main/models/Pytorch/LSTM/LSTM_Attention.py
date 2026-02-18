@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 
 class LSTM_ATTENTION(nn.Module):
-    def __init__(self, input_shape: int, hidden_units: int, output_shape: int):
+    def __init__(self, input_shape: int, hidden_units: int, output_shape: int, dropout: float, num_layers: int):
         super().__init__()
         
         self.conv = nn.Sequential(
@@ -26,8 +26,8 @@ class LSTM_ATTENTION(nn.Module):
             hidden_size=hidden_units,
             batch_first=True,
             bidirectional =False,
-            dropout =0.3,
-            num_layers=2
+            dropout =dropout,
+            num_layers=num_layers
         )
         
         self.fc = nn.Linear(hidden_units, output_shape)
