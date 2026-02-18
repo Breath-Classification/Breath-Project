@@ -5,7 +5,7 @@ from main import load_model_and_predict
 from scripts.error_tolerance import acceptable_error
 import os
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 def mistakes_table(model_path):
     y_pred,y_true,_,_ = load_model_and_predict(model_path)

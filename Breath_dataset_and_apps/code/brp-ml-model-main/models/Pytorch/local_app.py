@@ -3,10 +3,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import sys
 sys.path.append("/workspaces/Breath-Project/Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch")
-from show_mistakes import mistakes_table
-from confusion_matrix import conf_Matrix
+from Visualisation.show_mistakes import mistakes_table
+from Visualisation.confusion_matrix import conf_Matrix
 from main import train_and_predict
-from show import plot_results
+from Visualisation.show import plot_results
 
 st.title("ML Model Tester")
 

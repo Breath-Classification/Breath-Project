@@ -2,7 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
 
-def streamlit_plot(features, labels_predicted, labels_actual,key_prefix, window_size=150, title="Interactive plot"):
+def streamlit_plot_function(features, labels_predicted, labels_actual,key_prefix, window_size=150, title="Interactive plot"):
 
     if len(labels_actual.shape) > 1 and labels_actual.shape[1] == 3:
         labels_actual = labels_actual.argmax(axis=1)
