@@ -21,7 +21,7 @@ class SinPositionalEncoding(nn.Module):
         return self.dropout(x)
 
 class Transformer(nn.Module):
-    def __init__(self, input_shape: int, hidden_units: int, output_shape: int, d_model: int):
+    def __init__(self, input_shape: int, hidden_units: int, output_shape: int, d_model: int, dropout :float =0.1, num_layrer:int =2, dim_feedforward:int =64, nhead : int =2):
         super().__init__()
         
         self.embed = nn.Linear(input_shape,d_model)

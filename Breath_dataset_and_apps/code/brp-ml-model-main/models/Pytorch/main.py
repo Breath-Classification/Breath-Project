@@ -50,7 +50,7 @@ if use_wandb != "y":
     os.environ["WANDB_DISABLED"] = "true"
 
 
-def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos, dropout =0, num_layers=2):
+def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos, dropout =0, num_layers=2, dim_feedforward =64, nhead  =2, d_model=32):
    
     #logs
     wandb.init(
@@ -70,7 +70,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,mod
         }
     )
     train,test =config_dataloaders(block_size,batch_size,target)
-    model = create_model(hidden_units,output_shape,model_type,train,test,dropout,num_layers)
+    model = create_model(hidden_units,output_shape,model_type,train,test,dropout,num_layers,dim_feedforward,nhead, d_model)
     
     
     
@@ -182,7 +182,7 @@ def config_dataloaders(block_size,batch_size,target):
 
     return train,test
 
-def create_model(hidden_units,output_shape,model_type,train,test, dropout=0, num_layers=2):
+def create_model(hidden_units,output_shape,model_type,train,test, dropout=0, num_layers=2, dim_feedforward =64, nhead  =2, d_model=32):
     
     X_batch, y_batch = next(iter(train))
     input_shape = X_batch.shape[2]
@@ -223,9 +223,15 @@ def create_model(hidden_units,output_shape,model_type,train,test, dropout=0, num
                                     hidden_units=hidden_units,
                                     output_shape=output_shape)
         elif model_type == "Transformer":
-            model = Transformer(input_shape=input_shape,d_model=32,
+            model = Transformer(input_shape=input_shape,
+                                    d_model=d_model,
                                     hidden_units=hidden_units,
-                                    output_shape=output_shape)
+                                    output_shape=output_shape,
+                                    dropout=dropout,
+                                    num_layrer=num_layers,
+                                    dim_feedforward=dim_feedforward,
+                                    nhead=nhead,
+                                    )
         else:
             print("error")
     else:

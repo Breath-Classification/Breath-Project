@@ -1,5 +1,6 @@
 # Breath-Project
 xhost +local:docker
+pip install -e .
 
 
 ## Tworzenie venva graficznego
