@@ -24,7 +24,7 @@ from enum import Enum
 import os
 import json
 #scripts
-from scripts.HMM import viterbi_algorithm
+from scripts.HMM import viterbi_algorithm 
 
 
 #Constants

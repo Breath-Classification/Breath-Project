@@ -1,10 +1,12 @@
 import torch
-
+import json
 import math
 "https://www.geeksforgeeks.org/artificial-intelligence/viterbi-algorithm-for-hidden-markov-models-hmms"
+
+filename = "ConfigA_PI"
 def CalcA():
     from main import config_dataloaders
-    train,test = config_dataloaders(block_size=30,batch_size=32,target=1)#block = 30 :(
+    train,test = config_dataloaders(block_size=30,batch_size=32,target=0)#block = 30 :(
     
     trues=[]
     
@@ -29,19 +31,28 @@ def CalcPI():
     pi = torch.ones(N) / N
     return pi
 
-_cached_A = None
-_cached_pi = None
+def save_A_PI(A,pi):
+    config= {
+        "A":A,
+        "pi":pi
+    }
+    config["A"] = A.cpu().tolist()
+    config["pi"] = pi.cpu().tolist()
+    with open(f"SavedData/{filename}.json","w",encoding="utf-8") as f:
+        json.dump(config,f,indent=4)
 
 def get_A_pi():
-    global _cached_A, _cached_pi
-    if _cached_A is None or _cached_pi is None:
-        _cached_A = CalcA()
-        _cached_pi = CalcPI()
-    return _cached_A, _cached_pi
+    
+    with open(f"SavedData/{filename}.json","r",encoding="utf-8") as f:
+        config=json.load(f)
+    
+    A = torch.tensor(config["A"], dtype=torch.float32)
+    PI = torch.tensor(config["pi"], dtype=torch.float32)
+    return A,PI
 
-def viterbi_algorithm(preds,states=[0, 1, 2, 3],A=None,pi=None):
-    if A is None or pi is None:
-        A, pi = get_A_pi()
+def viterbi_algorithm(preds,states=[0, 1, 2, 3], A=None, pi=None):
+    
+    A, pi = get_A_pi()
     
     V = [{}]
     path = {}
@@ -66,5 +77,6 @@ def viterbi_algorithm(preds,states=[0, 1, 2, 3],A=None,pi=None):
 
 
 if __name__ == "__main__":
-    print(CalcA())
-    print(CalcPI())
+    A =CalcA()
+    PI=CalcPI()
+    save_A_PI(A,PI)
