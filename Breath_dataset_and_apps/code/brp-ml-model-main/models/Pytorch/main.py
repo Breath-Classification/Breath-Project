@@ -50,7 +50,10 @@ if use_wandb != "y":
     os.environ["WANDB_DISABLED"] = "true"
 
 
-def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos, dropout =0, num_layers=2, dim_feedforward =64, nhead  =2, d_model=32):
+def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
+                      model_type,learning_rate,num_epchos, loos_type ="CrossEntropyLoss", optimizer_type="Adam",
+                      dropout =0, num_layers=2, dim_feedforward =64, 
+                      nhead  =2, d_model=32):
    
     #logs
     wandb.init(
@@ -70,13 +73,10 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,mod
         }
     )
     train,test =config_dataloaders(block_size,batch_size,target)
+
     model = create_model(hidden_units,output_shape,model_type,train,test,dropout,num_layers,dim_feedforward,nhead, d_model)
-    
-    
-    
-    #loss_fn = FocalLossAdaptive(gamma=2)
-    loss_fn = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    loss_fn = create_loos_function(loos_type)
+    optimizer = create_optimizer(optimizer_type,model,learning_rate)
 
     results =engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.925) #stop i set 
 
@@ -93,7 +93,9 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,mod
         "output_shape": output_shape,
         "model_type": model_type,
         "learning_rate": learning_rate,
-        "num_epochs": num_epchos
+        "num_epochs": num_epchos,
+        "loos_type":loos_type,
+        "optimizer_type":optimizer_type
     }
     
     save_model(model,config)
@@ -168,7 +170,25 @@ def evaluate_model(model, test):
         print(len(all_trues), all_trues.shape)
         return all_preds, all_trues, all_features, all_paths
         
-    
+def create_loos_function(loos_type):
+    if loos_type == "FocalLossAdaptive":
+        loos_fn = FocalLossAdaptive(gamma=2)
+    elif loos_type == "FocalLoss":
+        loos_fn = FocalLoss(gamma=2)
+    elif loos_type =="CrossEntropyLoss":
+        loss_fn = torch.nn.CrossEntropyLoss()
+    else:
+        raise ValueError("wrong loos_type")
+    return loos_fn
+
+def create_optimizer(optimizer_type, model, learning_rate):
+    if optimizer_type == "Adam":
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    else:
+        raise ValueError("wrong optimizer_type")
+    return optimizer
+
+
 def config_dataloaders(block_size,batch_size,target):
     data_transform = transforms.Compose([
             transforms.Resize((64, 64)),
@@ -233,7 +253,7 @@ def create_model(hidden_units,output_shape,model_type,train,test, dropout=0, num
                                     nhead=nhead,
                                     )
         else:
-            print("error")
+            raise ValueError("wrong model_type")
     else:
         model = Transformer(input_shape=input_shape,d_model=32,
                                     hidden_units=hidden_units,

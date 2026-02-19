@@ -141,6 +141,20 @@ def conf_hiperparametres():
     step=0.0001,
     format="%.4f"
     )
+    loss = [
+        "CrossEntropyLoss",
+        "FocalLossAdaptive",
+        "FocalLoss" 
+    ]
+
+        
+    loss_type = st.selectbox("Choose loss:", loss)
+    optimizer = [
+        "Adam"
+    ]
+
+        
+    optimizer_type = st.selectbox("Choose optimizer:", optimizer)
     pom =[
         "nie",
         "tak"
@@ -149,7 +163,7 @@ def conf_hiperparametres():
 
     if(start!='nie'):
         if st.button("Train Configuration"):
-            train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos)
+            train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos,loos_type=loss_type,optimizer_type=optimizer_type)
             st.session_state.main_clicked=False
 
 
