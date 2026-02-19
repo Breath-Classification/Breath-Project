@@ -50,32 +50,40 @@ def mistakes():
     path = Path("saved_models/")
     files = [f.name for f in path.glob("*.pth")]
     files = ["--- choose model ---"]+files
-    selected_file = st.selectbox("Choose saved model:", files)
+    selected_file = st.multiselect("Choose saved model:", files)
     
-    if selected_file != "--- choose model ---":
+    if "--- choose model ---" not in selected_file:
         if st.button("Run Mistakes Analysis"):
-            labels, values =mistakes_table(f"saved_models/{selected_file}")
-            fig, ax = plt.subplots()
-            ax.bar(labels, values)
-            st.pyplot(fig)
+            for model_name in selected_file:
+
+                st.subheader(f"Model: {model_name}")
+
+                labels, values =mistakes_table(f"saved_models/{model_name}")
+                fig, ax = plt.subplots()
+                ax.bar(labels, values)
+                ax.set_title(f"Mistakes for {model_name}")
+                st.pyplot(fig)
             st.session_state.show_mistakes_clicked = False
 def matrix():
     path = Path("saved_models/")
     files = [f.name for f in path.glob("*.pth")]
     files = ["--- choose model ---"]+files
-    selected_file = st.selectbox("Choose saved model:", files)
+    selected_file = st.multiselect("Choose saved model:", files)
     
-    if selected_file != "--- choose model ---":
+    if "--- choose model ---" not in selected_file:
         if st.button("Confusion Matrix Analysis"):
-            disp =conf_Matrix(f"saved_models/{selected_file}")
-            fig, ax = plt.subplots(figsize=(6,6))
-            disp.plot(ax=ax, cmap='Blues', colorbar=True)
+            for model_name in selected_file:
+
+                st.subheader(f"Model: {model_name}")
+                disp =conf_Matrix(f"saved_models/{model_name}")
+                fig, ax = plt.subplots(figsize=(6,6))
+                disp.plot(ax=ax, cmap='Blues', colorbar=True)
 
 
-            plt.title("LSTM CONV1")
-            plt.xlabel("Przewidziana klasa")
-            plt.ylabel("Rzeczywista klasa")
-            st.pyplot(fig)
+                plt.title(f"Confusion Matrix for {model_name}")
+                plt.xlabel("Predicted")
+                plt.ylabel("Real")
+                st.pyplot(fig)
             st.session_state.confusion_matrix_clicked = False
     
 def conf_hiperparametres():
@@ -171,17 +179,18 @@ def interactive_plot():
     path = Path("saved_models/")
     files = [f.name for f in path.glob("*.pth")]
     files = ["--- choose model ---"]+files
-    selected_file = st.selectbox("Choose saved model:", files)
+    selected_file = st.multiselect("Choose saved model:", files)
     
     if "analysis_started" not in st.session_state:
         st.session_state.analysis_started = False
 
-    if selected_file != "--- choose model ---":
+    if "--- choose model ---" not in selected_file:
         if st.button("Run Interactive Analysis"):
-            st.session_state.analysis_started = True
-            st.session_state.selected_model = selected_file
+                st.session_state.analysis_started = True
+                st.session_state.selected_model = selected_file
         if st.session_state.analysis_started:
-                plot_results(f"saved_models/{st.session_state.selected_model}")
+            for model in  st.session_state.selected_model:
+                plot_results(f"saved_models/{model}")
 
                 
 

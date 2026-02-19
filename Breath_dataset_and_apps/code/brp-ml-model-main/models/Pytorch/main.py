@@ -51,7 +51,8 @@ if use_wandb != "y":
 
 
 def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
-                      model_type,learning_rate,num_epchos, loos_type ="CrossEntropyLoss", optimizer_type="Adam",
+                      model_type,learning_rate,num_epchos, 
+                      loos_type ="CrossEntropyLoss", optimizer_type="Adam",
                       dropout =0, num_layers=2, dim_feedforward =64, 
                       nhead  =2, d_model=32):
    
@@ -83,7 +84,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     wandb.finish()
 
     #optuna tuning 
-    return results
+    #return results
     
     config = {
         "block_size": block_size,

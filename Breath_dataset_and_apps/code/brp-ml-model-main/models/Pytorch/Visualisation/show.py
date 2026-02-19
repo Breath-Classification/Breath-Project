@@ -26,9 +26,9 @@ def plot_results(model_path):
     X= X[:, -1] # size
     
    
-    streamlit_plot_function(X,y_pred,y_true,key_prefix="original")
+    streamlit_plot_function(X,y_pred,y_true,key_prefix=f"{model_path}original")
     
     for i in range(len(y_true)):
         if(y_true[i]!=y_pred[i] and acceptable_error(y_pred,y_true,i,2)== True):
             y_pred[i]=4 # acceptable error class
-    streamlit_plot_function(X,y_pred,y_true, key_prefix="with error tolerance")
+    streamlit_plot_function(X,y_pred,y_true, key_prefix=f"{model_path} with error tolerance")
