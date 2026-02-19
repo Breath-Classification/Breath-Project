@@ -3,8 +3,8 @@ import torch
 import math
 "https://www.geeksforgeeks.org/artificial-intelligence/viterbi-algorithm-for-hidden-markov-models-hmms"
 def CalcA():
-    from main import create_train_test
-    train,test = create_train_test(30) #block = 30 :(
+    from main import config_dataloaders
+    train,test = config_dataloaders(block_size=30,batch_size=32,target=1)#block = 30 :(
     
     trues=[]
     
@@ -67,3 +67,4 @@ def viterbi_algorithm(preds,states=[0, 1, 2, 3],A=None,pi=None):
 
 if __name__ == "__main__":
     print(CalcA())
+    print(CalcPI())
