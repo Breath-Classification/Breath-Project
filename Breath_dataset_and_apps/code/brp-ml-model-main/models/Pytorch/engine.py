@@ -11,6 +11,7 @@ from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 import wandb
 from scripts.error_tolerance import acceptable_error
+from scripts.HMM import viterbi_algorithm
 
 
 
@@ -62,13 +63,23 @@ def test_step(model: torch.nn.Module,   # Step where the model's performance is 
   with torch.inference_mode():
       
       for batch, (X, y) in enumerate(dataloader):
-         
+          all_paths = []
           X, y = X.to(device), y.to(device)
   
           test_pred_logits = model(X)
           test_pred_labels = test_pred_logits.argmax(dim=1)
           batch_loss = 0.0
-
+          output = model(X, return_sequence=True)   # (batch, T, hidden)
+          logits = model.fc(output)                 # (batch, T, 4)
+          log_probs = torch.log_softmax(logits, -1)
+                
+          for i in range(32):
+              path = viterbi_algorithm(log_probs[i])
+              last_label = torch.tensor(path[-1]) 
+              all_paths.append(last_label.cpu())
+          
+          all_paths = torch.tensor(all_paths)
+          test_pred_labels = all_paths.clone()     
           #Error tolerance
           #When the prediction error occurs at the boundary of two classes 
           #and is within a distance of at most EPSILON, 

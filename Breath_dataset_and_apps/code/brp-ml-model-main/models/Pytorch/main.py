@@ -171,16 +171,16 @@ def evaluate_model(model, test):
         print(len(all_trues), all_trues.shape)
         return all_preds, all_trues, all_features, all_paths
         
-def create_loos_function(loos_type):
-    if loos_type == "FocalLossAdaptive":
-        loos_fn = FocalLossAdaptive(gamma=2)
-    elif loos_type == "FocalLoss":
-        loos_fn = FocalLoss(gamma=2)
-    elif loos_type =="CrossEntropyLoss":
+def create_loos_function(loss_type):
+    if loss_type == "FocalLossAdaptive":
+        loss_fn = FocalLossAdaptive(gamma=2)
+    elif loss_type == "FocalLoss":
+        loss_fn = FocalLoss(gamma=2)
+    elif loss_type =="CrossEntropyLoss":
         loss_fn = torch.nn.CrossEntropyLoss()
     else:
-        raise ValueError("wrong loos_type")
-    return loos_fn
+        raise ValueError("wrong loss_type")
+    return loss_fn
 
 def create_optimizer(optimizer_type, model, learning_rate):
     if optimizer_type == "Adam":
