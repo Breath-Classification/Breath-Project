@@ -1,7 +1,7 @@
-package com.brpapp;
+package com.brpapp2;
 
 import android.app.Application;
-import com.brpapp.BRPAppPackage;
+import com.brpapp2.BRPAppPackage;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;

@@ -1,4 +1,4 @@
-package com.brpapp;
+package com.brpapp2;
 
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;

@@ -1,4 +1,4 @@
-package com.brpapp;
+package com.brpapp2;
 
 import androidx.annotation.NonNull;
 import com.facebook.react.ReactPackage;
