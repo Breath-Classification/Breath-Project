@@ -83,7 +83,7 @@ class BlockDataset(Dataset): #Sliding window
         x = self.X[idx]
         y = self.y[idx]
 
-        
+        '''
         #first derivative dx[t] =x[t]-x[t-1]
         dx = torch.zeros_like(x)
         dx[1:]=x[1:]-x[:-1]
@@ -93,6 +93,7 @@ class BlockDataset(Dataset): #Sliding window
         ddx = torch.zeros_like(x)
         ddx[1:-1] = x[2:] - 2 * x[1:-1] + x[:-2]
         x = torch.cat([x,ddx], dim=1)  #[30,12] -> [30,18]
+        '''
         
         #add Gausian noise
         if self.augment:

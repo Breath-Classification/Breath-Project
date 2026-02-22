@@ -56,7 +56,7 @@ react {
  */
 def enableProguardInReleaseBuilds = true
 
-def enableSeparateBuildPerCPUArchitecture = true
+def enableSeparateBuildPerCPUArchitecture = false
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -120,11 +120,19 @@ dependencies {
     // This dependency adds the necessary TF op support.
     implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
 
+implementation('org.pytorch:pytorch_android:1.13.1') {
+    exclude group: 'com.facebook.fbjni', module: 'fbjni-java-only'
+}
+implementation('org.pytorch:pytorch_android_torchvision:1.13.1') {
+    exclude group: 'com.facebook.fbjni', module: 'fbjni-java-only'
+}
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
     }
 }
+
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)

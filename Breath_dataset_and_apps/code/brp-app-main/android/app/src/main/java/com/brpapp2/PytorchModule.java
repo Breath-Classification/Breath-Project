@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.FileOutputStream;
 
+
 public class PytorchModule extends ReactContextBaseJavaModule {
 
 private Module model;
@@ -50,74 +51,67 @@ private Module model;
       promise.reject("ERROR_LOADING_MODEL", e);
     }
   }
+   @ReactMethod
+  public synchronized void loadAccModel(
+    int sizeOfInput,
+    String nameOfTheModel,
+    Promise promise
+  ) { // synchronized for safe model loading
+    try {
+      model = Module.load(assetFilePath(getReactApplicationContext(), nameOfTheModel + ".pt"));
+      // Initialize buffers after the model is loaded
+      promise.resolve("Model loaded successfully");
+    } catch (Exception e) {
+      promise.reject("ERROR_LOADING_MODEL", e);
+    }
+  }
   
-  private float[][] createSlidingWindows(float[] input, int windowSize, int stride) {
-    int numWindows = (input.length - windowSize) / stride + 1;
-    float[][] windows = new float[numWindows][windowSize];
-
-    for (int i = 0; i < numWindows; i++) {
-        for (int j = 0; j < windowSize; j++) {
-            windows[i][j] = input[i * stride + j];
-        }
-    }
-    return windows;
-}
-
   @ReactMethod
-  public void predict(ReadableArray variables,int windowSize, int stride, Promise promise) {
+public void predict(ReadableArray variables, Promise promise) {
+
     if (model == null) {
-      promise.reject(
-        "MODEL_NOT_LOADED",
-        "Model not loaded. Make sure to call loadModel() first."
-      );
-      return;
+        promise.reject("MODEL_NOT_LOADED", "Model not loaded.");
+        return;
     }
 
-    // Set values for the inputArray
+    if (variables.size() != 180) {
+        promise.reject("INVALID_INPUT_SIZE",
+            "Expected 180 values (30x6) but got " + variables.size());
+        return;
+    }
+
     float[] inputArray = new float[variables.size()];
+
     for (int i = 0; i < variables.size(); i++) {
-      // Make sure the value is a number and cast it to float
-      if (!variables.isNull(i) && variables.getType(i) == ReadableType.Number) {
-        inputArray[i] = (float) variables.getDouble(i);
-      } else {
-        promise.reject(
-          "INVALID_INPUT_TYPE",
-          "Input must be an array of numbers."
-        );
-        return;
-      }
-    }
-
-     // Tworzymy sliding windows
-    if (inputArray.length < windowSize) {
-        promise.reject("INPUT_TOO_SHORT", "Input length is smaller than window size.");
-        return;
-    }
-    float[][] windows = createSlidingWindows(inputArray, windowSize, stride);
-
-    // Lista wyników dla każdego okna
-    int[] results = new int[windows.length];
-
-    for (int i = 0; i < windows.length; i++) {
-        Tensor inputTensor = Tensor.fromBlob(windows[i], new long[]{1, windowSize});
-        Tensor outputTensor = model.forward(IValue.from(inputTensor)).toTensor();
-        float[] outputArray = outputTensor.getDataAsFloatArray();
-
-        // Znajdujemy indeks max dla tego okna
-        int maxIndex = 0;
-        float maxValue = outputArray[0];
-        for (int j = 1; j < outputArray.length; j++) {
-            if (outputArray[j] > maxValue) {
-                maxValue = outputArray[j];
-                maxIndex = j;
-            }
+        if (!variables.isNull(i) && variables.getType(i) == ReadableType.Number) {
+            inputArray[i] = (float) variables.getDouble(i);
+        } else {
+            promise.reject("INVALID_INPUT_TYPE", "Input must be numeric.");
+            return;
         }
-
-        results[i] = maxIndex;
     }
 
-    // Zwracamy tablicę wyników do JS
-    promise.resolve(Arrays.asList(Arrays.stream(results).boxed().toArray(Integer[]::new)));
+    // LSTM input shape: [1, 30, 6]
+    Tensor inputTensor = Tensor.fromBlob(
+        inputArray,
+        new long[]{1, 30, 6}
+    );
+
+    Tensor outputTensor = model.forward(IValue.from(inputTensor)).toTensor();
+    float[] outputArray = outputTensor.getDataAsFloatArray();
+
+    // argmax
+    int maxIndex = 0;
+    float maxValue = outputArray[0];
+
+    for (int i = 1; i < outputArray.length; i++) {
+        if (outputArray[i] > maxValue) {
+            maxValue = outputArray[i];
+            maxIndex = i;
+        }
+    }
+
+    promise.resolve(maxIndex);
 }
 
   private String assetFilePath(Context context, String assetName) throws IOException {

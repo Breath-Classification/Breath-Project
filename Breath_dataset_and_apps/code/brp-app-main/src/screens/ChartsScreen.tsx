@@ -10,10 +10,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAccelerometerData } from "../hooks/useAccelerometerData";
 import { useTensometerData } from "../hooks/useTensometerData";
 import { useUserData } from "../hooks/useUserData";
-import {
-  useTensPrediction,
-  useAccPrediction,
-} from "../components/NeuralNetworkModel";
+
+import { predictTens, predictAcc } from "../components/NeuralNetworkModel";
+
+// W miejscu gdzie wcześniej używałeś useTensPrediction
+
 
 import RNFS from "react-native-fs";
 
@@ -29,6 +30,7 @@ function ChartsScreen({ modelName, connection }) {
   const { seconds, setSeconds } = useUserData();
   const { breathAmount, setBreathAmount } = useUserData();
 
+  const [useTorch, setUseTorch] = useState(true); // true = PyTorch, false = TensorFlow Lite
   var normalizedAccPoints = [];
   var normalizedTensPoints = [];
   const [accPointsToDisplay, setAccPointsToDisplay] = useState<any>({
@@ -156,7 +158,7 @@ function ChartsScreen({ modelName, connection }) {
       } else if (name === "acc" && accPoints.length > 0) {
         logEntry = `${currentTimestamp},${accPoints[accPoints.length - 1].y}\n`;
       }
-      const logFilePath = `${RNFS.DownloadDirectoryPath}/BrpApp`;
+      const logFilePath = `${RNFS.DownloadDirectoryPath}/BrpApp2`;
       const logFile = logFilePath + `/${name}.txt`;
 
       const directoryExists = await RNFS.exists(logFilePath);
@@ -183,7 +185,7 @@ function ChartsScreen({ modelName, connection }) {
 
   const clearLogs = async () => {
     try {
-      const logFilePath = `${RNFS.DownloadDirectoryPath}/BrpApp`;
+      const logFilePath = `${RNFS.DownloadDirectoryPath}/BrpApp2`;
       const directoryExists = await RNFS.exists(logFilePath);
 
       if (directoryExists) {
@@ -210,13 +212,13 @@ function ChartsScreen({ modelName, connection }) {
         normalizedTensPoints = handleNaN(normalize(smoothedTensPoints));
 
         if (normalizedTensPoints.length > MOVING_TENS_WINDOW) {
-          predictData(
-            normalizedTensPoints,
-            useTensPrediction,
-            MOVING_TENS_WINDOW,
-            setTensPointsToDisplay,
-            CHART_WINDOW_TENS
-          );
+         predictData(
+          normalizedTensPoints,
+          (points) => predictTens(points, useTorch ? "torch" : "tf"),
+          MOVING_TENS_WINDOW,
+          setTensPointsToDisplay,
+          CHART_WINDOW_TENS
+        );
         }
       }
     } catch (error) {
@@ -242,7 +244,7 @@ function ChartsScreen({ modelName, connection }) {
         if (normalizedAccPoints.length > MOVING_ACC_WINDOW) {
           predictData(
             normalizedAccPoints,
-            useAccPrediction,
+            (points) => predictTens(points, useTorch ? "torch" : "tf"),
             MOVING_ACC_WINDOW,
             setAccPointsToDisplay,
             CHART_WINDOW_ACC
@@ -380,6 +382,18 @@ function ChartsScreen({ modelName, connection }) {
               style={styles.resetChartButtonText}
             >
               RESET
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setUseTorch(!useTorch)}
+            style={styles.demoChartStyle}
+          >
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={styles.startChartButtonText}
+            >
+              {useTorch ? "Using PyTorch" : "Using TFLite"}
             </Text>
           </TouchableOpacity>
         </View>

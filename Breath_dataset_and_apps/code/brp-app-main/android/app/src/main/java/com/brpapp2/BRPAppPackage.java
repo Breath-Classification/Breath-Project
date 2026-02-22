@@ -27,6 +27,7 @@ public class BRPAppPackage implements ReactPackage {
     List<NativeModule> modules = new ArrayList<>();
 
     modules.add(new TFLiteModule(reactContext));
+    modules.add(new PytorchModule(reactContext)); 
 
     return modules;
   }

@@ -73,6 +73,8 @@ def test_step(model: torch.nn.Module,   # Step where the model's performance is 
           logits = model.fc(output)                 # (batch, T, 4)
           log_probs = torch.log_softmax(logits, -1)
                 
+                
+          '''
           for i in range(32):
               path = viterbi_algorithm(log_probs[i])
               last_label = torch.tensor(path[-1]) 
@@ -80,6 +82,7 @@ def test_step(model: torch.nn.Module,   # Step where the model's performance is 
           
           all_paths = torch.tensor(all_paths)
           test_pred_labels = all_paths.clone()     
+          '''
           #Error tolerance
           #When the prediction error occurs at the boundary of two classes 
           #and is within a distance of at most EPSILON, 

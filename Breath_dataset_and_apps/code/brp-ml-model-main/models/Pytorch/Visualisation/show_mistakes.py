@@ -8,7 +8,9 @@ import sys
 #sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 def mistakes_table(model_path):
-    y_pred,y_true,_,_ = load_model_and_predict(model_path)
+    y_pred,y_true,X,_ = load_model_and_predict(model_path)
+    
+    print(X)
     print("sciezka")
     print(model_path)
     mistakes = {

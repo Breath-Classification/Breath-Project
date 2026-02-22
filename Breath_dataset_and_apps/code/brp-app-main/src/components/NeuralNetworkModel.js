@@ -1,21 +1,64 @@
 import { NativeModules } from "react-native";
-// Depending on the platform, choose the appropriate NativeModule
-const MLBridge = NativeModules.TFLiteModule;
+const { TFLiteModule, PytorchModule } = NativeModules;
 
-export const useTensPrediction = async (points) => {
+/**
+ * Funkcja uniwersalna do predykcji dla Tensometru
+ * @param {Array} points - tablica punktów {y, x}
+ * @param {"tf" | "torch"} engine - wybór silnika
+ * @returns {Promise<Array>} - wynik predykcji w formie [klasa]
+ */
+export const predictTens = async (points, engine = "tf") => {
+  const flatInput = points.map((p) => p.y);
+
   try {
-    const result = await MLBridge.predict(points.map((p) => p.y));
-    return [result];
+    if (engine === "tf") {
+      const result = await TFLiteModule.predict(flatInput);
+      return [result]; // zachowujemy ten sam interface
+    } else if (engine === "torch") {
+      if (flatInput.length !== 30 * 6) {
+        console.warn("Input length should be 180 floats (30x6)");
+        return null;
+      }
+      const result = await PytorchModule.predict(flatInput);
+      return [result];
+    } else {
+      console.warn("Unknown engine, defaulting to tf");
+      const result = await TFLiteModule.predict(flatInput);
+      return [result];
+    }
   } catch (error) {
-    console.error("Error predicting:", error);
+    console.error(`${engine} prediction error:`, error);
+    return null;
   }
 };
 
-export const useAccPrediction = async (points) => {
+/**
+ * Funkcja uniwersalna do predykcji dla Accelerometru
+ * @param {Array} points - tablica punktów {y, x}
+ * @param {"tf" | "torch"} engine - wybór silnika
+ * @returns {Promise<Array>} - wynik predykcji w formie [klasa]
+ */
+export const predictAcc = async (points, engine = "tf") => {
+  const flatInput = points.map((p) => p.y);
+
   try {
-    const result = await MLBridge.predictAcc(points.map((p) => p.y));
-    return [result];
+    if (engine === "tf") {
+      const result = await TFLiteModule.predictAcc(flatInput);
+      return [result];
+    } else if (engine === "torch") {
+      if (flatInput.length !== 30 * 6) {
+        console.warn("Input length should be 180 floats (30x6)");
+        return null;
+      }
+      const result = await PytorchModule.predict(flatInput);
+      return [result];
+    } else {
+      console.warn("Unknown engine, defaulting to tf");
+      const result = await TFLiteModule.predictAcc(flatInput);
+      return [result];
+    }
   } catch (error) {
-    console.error("Error predicting:", error);
+    console.error(`${engine} prediction error:`, error);
+    return null;
   }
 };
