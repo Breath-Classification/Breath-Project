@@ -110,8 +110,8 @@ public void predict(ReadableArray variables, Promise promise) {
             maxIndex = i;
         }
     }
-
-    promise.resolve(maxIndex);
+    
+    promise.resolve(maxIndex+1);
 }
 
   private String assetFilePath(Context context, String assetName) throws IOException {

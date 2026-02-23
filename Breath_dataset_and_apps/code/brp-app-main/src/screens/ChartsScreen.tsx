@@ -158,7 +158,7 @@ function ChartsScreen({ modelName, connection }) {
       } else if (name === "acc" && accPoints.length > 0) {
         logEntry = `${currentTimestamp},${accPoints[accPoints.length - 1].y}\n`;
       }
-      const logFilePath = `${RNFS.DownloadDirectoryPath}/BrpApp2`;
+      const logFilePath = `${RNFS.DocumentDirectoryPath}/BrpApp2`;
       const logFile = logFilePath + `/${name}.txt`;
 
       const directoryExists = await RNFS.exists(logFilePath);
@@ -185,7 +185,7 @@ function ChartsScreen({ modelName, connection }) {
 
   const clearLogs = async () => {
     try {
-      const logFilePath = `${RNFS.DownloadDirectoryPath}/BrpApp2`;
+      const logFilePath = `${RNFS.DocumentDirectoryPath}/BrpApp2`;
       const directoryExists = await RNFS.exists(logFilePath);
 
       if (directoryExists) {
