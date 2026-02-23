@@ -23,6 +23,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.FileOutputStream;
 
+import android.util.Log;
+
+
 
 public class PytorchModule extends ReactContextBaseJavaModule {
 
@@ -104,14 +107,19 @@ public void predict(ReadableArray variables, Promise promise) {
     int maxIndex = 0;
     float maxValue = outputArray[0];
 
+   
     for (int i = 1; i < outputArray.length; i++) {
+     Log.w("MyTag", String.valueOf(outputArray[i-1]));
+     Log.w("MyTag", String.valueOf(i-1));
         if (outputArray[i] > maxValue) {
             maxValue = outputArray[i];
             maxIndex = i;
         }
     }
+    Log.w("MyTag", String.valueOf(outputArray[3]));
+    Log.w("MyTag", String.valueOf(3));
     
-    promise.resolve(maxIndex+1);
+    promise.resolve(maxIndex-1);
 }
 
   private String assetFilePath(Context context, String assetName) throws IOException {
