@@ -66,6 +66,16 @@ const SettingsScreen = ({ setStatusBar, modelName, setModelName }) => {
       >
         <Text style={styles.ButtonText}>LSTMBase</Text>
       </Pressable>
+
+      <Pressable
+        onPress={() => handleModelSelection("LSTMATTENTIONCNN")}
+        style={[
+          styles.Button,
+          modelName === "LSTMATTENTIONCNN" && { backgroundColor: "#069400" },
+        ]}
+      >
+        <Text style={styles.ButtonText}>LSTMATTENTIONCNN</Text>
+      </Pressable>
     </View>
   );
 };

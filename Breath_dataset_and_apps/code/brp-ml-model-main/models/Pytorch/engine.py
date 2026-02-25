@@ -69,9 +69,11 @@ def test_step(model: torch.nn.Module,   # Step where the model's performance is 
           test_pred_logits = model(X)
           test_pred_labels = test_pred_logits.argmax(dim=1)
           batch_loss = 0.0
-          output = model(X, return_sequence=True)   # (batch, T, hidden)
+          '''
+          output = model(X)   # (batch, T, hidden)
           logits = model.fc(output)                 # (batch, T, 4)
           log_probs = torch.log_softmax(logits, -1)
+          '''
                 
                 
           '''
@@ -187,8 +189,6 @@ def train(model: torch.nn.Module,                      #Main training loop
       
       #Save the model when its performance exceeds the stop_point
       if(stop==True and test_acc>=stop_point):
-        filename = input("input name of the saved model")
-        torch.save(model.state_dict(), f"saved_models/{filename}.pth")
         break
 
   wandb.summary.update({

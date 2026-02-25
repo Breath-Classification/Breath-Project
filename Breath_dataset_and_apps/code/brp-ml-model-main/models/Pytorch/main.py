@@ -79,7 +79,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     loss_fn = create_loos_function(loos_type)
     optimizer = create_optimizer(optimizer_type,model,learning_rate)
 
-    results =engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.925) #stop i set 
+    results =engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, 0.931) #stop i set 
 
     wandb.finish()
 
@@ -112,8 +112,8 @@ def save_model_mobile(model, filename="LSTM_BaseMobile"):
     example_input = torch.rand(1, 30, 6)  # np. batch=1, 30x6 wartości
     
     # Tworzymy TorchScript
-    traced_script_module = torch.jit.trace(model, example_input)
-    
+    #traced_script_module = torch.jit.trace(model, example_input)
+    traced_script_module = torch.jit.script(model)
     # Zapisujemy w folderze 'mobile_models'
     import os
     os.makedirs("mobile_models", exist_ok=True)
