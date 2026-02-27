@@ -1,4 +1,4 @@
-package com.brpapp;
+package com.brpapp2;
 
 import androidx.annotation.NonNull;
 import com.facebook.react.ReactPackage;
@@ -27,6 +27,7 @@ public class BRPAppPackage implements ReactPackage {
     List<NativeModule> modules = new ArrayList<>();
 
     modules.add(new TFLiteModule(reactContext));
+    modules.add(new PytorchModule(reactContext)); 
 
     return modules;
   }

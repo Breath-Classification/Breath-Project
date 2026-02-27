@@ -31,7 +31,7 @@ def interactive_plot(
                     if m == 2
                     else "yellow"
                     if m == 3
-                    else "pink"
+                    else "gray"
                 )
             )
             for m in labels_predicted
@@ -48,7 +48,7 @@ def interactive_plot(
                         if m == 2
                         else "yellow"
                         if m == 3
-                        else "pink"
+                        else "gray"
                     )
                 )
                 for m in labels_actual
@@ -64,7 +64,7 @@ def interactive_plot(
             range(start_index, start_index + window_size),
             features[start_index : start_index + window_size],
             linestyle="-",
-            color="pink",
+            color="gray",
             alpha=0.5,
         )
         ax.set_xlim(start_index, start_index + window_size)

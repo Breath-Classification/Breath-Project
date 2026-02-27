@@ -79,7 +79,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     loss_fn = create_loos_function(loos_type)
     optimizer = create_optimizer(optimizer_type,model,learning_rate)
 
-    results =engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.925) #stop i set 
+    results =engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, 0.931) #stop i set 
 
     wandb.finish()
 
@@ -100,9 +100,25 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     }
     
     save_model(model,config)
+    save_model_mobile(model)
 
     all_preds, all_trues, all_features,_ = evaluate_model(model,test)
     return all_preds, all_trues, all_features
+def save_model_mobile(model, filename="LSTM_BaseMobile"):
+    # Przełącz model w tryb ewaluacji
+    model.eval()
+    
+    # Tworzymy przykładowy tensor wejściowy (musisz dopasować do swojego inputu)
+    example_input = torch.rand(1, 30, 6)  # np. batch=1, 30x6 wartości
+    
+    # Tworzymy TorchScript
+    #traced_script_module = torch.jit.trace(model, example_input)
+    traced_script_module = torch.jit.script(model)
+    # Zapisujemy w folderze 'mobile_models'
+    import os
+    os.makedirs("mobile_models", exist_ok=True)
+    traced_script_module.save(f"mobile_models/{filename}.pt")
+    print(f"TorchScript model saved as mobile_models/{filename}.pt")
     
 def save_model(model, config):
     #saving model
@@ -289,26 +305,7 @@ def load_model_and_predict(model_path):
 
 if __name__ == "__main__":
     
-    '''
-    all_preds, all_trues, all_features, all_paths= load_model_and_predict("saved_models/BaseB.pth")
-    print("hello")
-    no_HMM=0
-    HMM=0
-    
-    for i in range(len(all_preds)):
-        if all_preds[i]==all_trues[i] or acceptable_error(all_preds,all_trues,i,EPSILON=2)==True:
-           no_HMM+=1
-        if all_trues[i]==all_paths[i] or acceptable_error(all_paths,all_trues,i,EPSILON=2)==True:
-            HMM+=1
-    print(all_paths)
-    print(no_HMM*100/len(all_preds))
-    print(HMM*100/len(all_preds))
-    '''
-    
-    
-    y_pred, y_true, X = train_and_predict()
-    print("PRED:", y_pred)
-    print("TRUE:", y_true)
+    train_and_predict(30,32,0,64,4,"LSTM_BASE",0.001,40)
     
     
     

@@ -69,10 +69,14 @@ def test_step(model: torch.nn.Module,   # Step where the model's performance is 
           test_pred_logits = model(X)
           test_pred_labels = test_pred_logits.argmax(dim=1)
           batch_loss = 0.0
-          output = model(X, return_sequence=True)   # (batch, T, hidden)
+          '''
+          output = model(X)   # (batch, T, hidden)
           logits = model.fc(output)                 # (batch, T, 4)
           log_probs = torch.log_softmax(logits, -1)
+          '''
                 
+                
+          '''
           for i in range(32):
               path = viterbi_algorithm(log_probs[i])
               last_label = torch.tensor(path[-1]) 
@@ -80,6 +84,7 @@ def test_step(model: torch.nn.Module,   # Step where the model's performance is 
           
           all_paths = torch.tensor(all_paths)
           test_pred_labels = all_paths.clone()     
+          '''
           #Error tolerance
           #When the prediction error occurs at the boundary of two classes 
           #and is within a distance of at most EPSILON, 
@@ -184,8 +189,6 @@ def train(model: torch.nn.Module,                      #Main training loop
       
       #Save the model when its performance exceeds the stop_point
       if(stop==True and test_acc>=stop_point):
-        filename = input("input name of the saved model")
-        torch.save(model.state_dict(), f"saved_models/{filename}.pth")
         break
 
   wandb.summary.update({

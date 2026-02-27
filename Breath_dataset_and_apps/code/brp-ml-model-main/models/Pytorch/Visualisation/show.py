@@ -21,6 +21,7 @@ def plot_results(model_path):
     y_pred,y_true,X,_ = load_model_and_predict(model_path)
     
     
+    
     X = X[:, :6] # zrobione dla pochodnych
 
     X= X[:, -1] # size

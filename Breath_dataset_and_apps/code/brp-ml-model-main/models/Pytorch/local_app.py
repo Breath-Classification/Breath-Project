@@ -107,8 +107,8 @@ def conf_hiperparametres():
     hidden_units = st.number_input(
         "Hidden units",
         min_value=2,
-        max_value=64,
-        step=2,
+        max_value=512,
+        step=1,
         value=64
     )
     output_shape = st.number_input(
@@ -143,11 +143,11 @@ def conf_hiperparametres():
     )
     learning_rate = st.number_input(
     "Learning rate",
-    min_value=0.0001,
+    min_value=0.00000000001,
     max_value=1.0,
     value=0.01,
-    step=0.0001,
-    format="%.4f"
+    step=0.00000000001,
+    format="%.12f"
     )
     loss = [
         "CrossEntropyLoss",
@@ -163,6 +163,41 @@ def conf_hiperparametres():
 
         
     optimizer_type = st.selectbox("Choose optimizer:", optimizer)
+    
+    dropout = st.number_input(
+    "dropout",
+    min_value=0.0,
+    max_value=1.0,
+    value=0.0,
+    step=0.01,
+    format="%.2f"
+    )
+    num_layers = st.number_input(
+        "num_layers",
+        min_value=1,
+        max_value=5,
+        step=1,
+        value=1
+    )
+    powers_of_two = [2**i for i in range(0, 10)]  # 1,2,4,...,256
+    n_head = st.selectbox(
+        "n_head",
+        powers_of_two,
+        index=powers_of_two.index(2)
+    )
+    dim_feedforward= st.selectbox(
+        "dim_feedforward",
+        powers_of_two,
+        index=powers_of_two.index(64)
+    )
+    d_model= st.selectbox(
+        "d_model",
+        powers_of_two,
+        index=powers_of_two.index(32)
+    )
+    
+    
+    
     pom =[
         "nie",
         "tak"
@@ -171,7 +206,7 @@ def conf_hiperparametres():
 
     if(start!='nie'):
         if st.button("Train Configuration"):
-            train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos,loos_type=loss_type,optimizer_type=optimizer_type)
+            train_and_predict(block_size,batch_size,target,hidden_units,output_shape,model_type,learning_rate,num_epchos,loos_type=loss_type,optimizer_type=optimizer_type,dropout=dropout,num_layers=num_layers,nhead=n_head,dim_feedforward=dim_feedforward,d_model=d_model)
             st.session_state.main_clicked=False
 
 

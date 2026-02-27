@@ -13,7 +13,14 @@ const SettingsScreen = ({ setStatusBar, modelName, setModelName }) => {
   useEffect(() => {
     if (Platform.OS === "android") {
       NativeModules.TFLiteModule.loadModel(6, `${modelName}_tens`);
-      NativeModules.TFLiteModule.loadAccModel(12, `${modelName}_acc`);
+     // NativeModules.TFLiteModule.loadAccModel(12, `${modelName}_acc`);
+      try {
+      NativeModules.PytorchModule.loadModel(6,`${modelName}_tens`);
+      console.log('Model loaded successfully');
+      } catch (e) {
+        console.error('Failed to load model:', e);
+      }
+      //NativeModules.PytorchModule.loadAccModel(12, `${modelName}_acc`);
     }
   }, [modelName]);
 
@@ -48,6 +55,26 @@ const SettingsScreen = ({ setStatusBar, modelName, setModelName }) => {
         ]}
       >
         <Text style={styles.ButtonText}>LSTMModel</Text>
+      </Pressable>
+
+      <Pressable
+        onPress={() => handleModelSelection("LSTMBASE")}
+        style={[
+          styles.Button,
+          modelName === "LSTMBASE" && { backgroundColor: "#069400" },
+        ]}
+      >
+        <Text style={styles.ButtonText}>LSTMBase</Text>
+      </Pressable>
+
+      <Pressable
+        onPress={() => handleModelSelection("LSTMATTENTIONCNN")}
+        style={[
+          styles.Button,
+          modelName === "LSTMATTENTIONCNN" && { backgroundColor: "#069400" },
+        ]}
+      >
+        <Text style={styles.ButtonText}>LSTMATTENTIONCNN</Text>
       </Pressable>
     </View>
   );
