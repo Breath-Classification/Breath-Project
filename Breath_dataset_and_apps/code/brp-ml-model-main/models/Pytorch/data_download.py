@@ -101,4 +101,54 @@ class BlockDataset(Dataset): #Sliding window
             x = x + noise
 
         return x, y
+class SequenceBlockDataset(Dataset): 
+    def __init__(self, filename, block_size, convert_to_categorical=False,):
+        
+        data = []
+        with open(filename, "r") as f:
+            for line in f.readlines():
+                data.append([float(v) for v in line.strip().split(",")])
+        data = np.array(data)
+
+        X = data[:, :-1]
+        y = data[:, -1]
+
+        
+        blocks_X, blocks_y = [], []  #Create blocks
+        for i in range(0,len(X) - block_size + 1,block_size):
+            blocks_X.append(X[i:i + block_size])
+            blocks_y.append(y[i:i + block_size]) 
+
+        self.X = np.array(blocks_X)  
+        self.y = np.array(blocks_y)
+
+        if convert_to_categorical:
+            num_classes = len(np.unique(self.y))
+            self.y = to_categorical(self.y, num_classes=num_classes)
+
+        #Convert data to tensor
+        self.X = torch.tensor(self.X, dtype=torch.float32)
+        self.y = torch.tensor(self.y, dtype=torch.long if not convert_to_categorical else torch.float32)
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        x = self.X[idx]
+        y = self.y[idx]
+
+        
+        #first derivative dx[t] =x[t]-x[t-1]
+        dx = torch.zeros_like(x)
+        dx[1:]=x[1:]-x[:-1]
+        x=torch.cat([x,dx],dim=1) #[30,6] -> [30,12]
+        
+        '''
+        #second derivative ddx[t] = x[t+1] - 2x[t] +x[t-1]
+        ddx = torch.zeros_like(x)
+        ddx[1:-1] = x[2:] - 2 * x[1:-1] + x[:-2]
+        x = torch.cat([x,ddx], dim=1)  #[30,12] -> [30,18]
+        '''
+    
+        return x, y
     
