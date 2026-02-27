@@ -26,6 +26,7 @@ def plot_results(model_path):
 
     X= X[:, -1] # size
     
+    
    
     streamlit_plot_function(X,y_pred,y_true,key_prefix=f"{model_path}original")
     

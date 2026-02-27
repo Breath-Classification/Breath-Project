@@ -6,9 +6,9 @@ from torchvision.transforms import ToTensor
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
-import torchcrf
+from torchcrf import CRF
 
-class LSTM_Mix(nn.Module):
+class LSTM_MIX(nn.Module):
     def __init__(self, input_shape: int, hidden_units: int, output_shape: int, dropout : float =0.0, num_layers : int =1):
         super().__init__()
         
@@ -28,7 +28,7 @@ class LSTM_Mix(nn.Module):
             dropout =dropout,
             num_layers=num_layers
         )
-        
+        self.crf = CRF(output_shape)
         self.fc = nn.Linear(hidden_units*2, output_shape)
 
     def forward(self, x):

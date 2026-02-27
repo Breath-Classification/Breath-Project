@@ -3,6 +3,7 @@ import os
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from data_download import BlockDataset
+from data_download import SequenceBlockDataset
 
 '''
 Purpose of this code is to create DataLoaders
@@ -26,8 +27,10 @@ def create_dataloaders(
 ):
 
   #GAUSIAN NOISE AUGUMENT -> TRUE else AUGUMENT -> FALSE
-  train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size, augment=False)
-  test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size, augment=False)
+  #train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size, augment=False)
+  #test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size, augment=False)
+  train_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
+  test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
 
   train_dataloader = DataLoader(
       train_data,

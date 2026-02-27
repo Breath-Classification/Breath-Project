@@ -11,12 +11,14 @@ from LSTM.LSTM_Stacked import LSTM_STACKED
 from LSTM.LSTM_Bidirectional import LSTM_BIDIRECTIONAL
 from LSTM.LSTM_Conv1 import LSTM_CONV1
 from LSTM.LSTM_Attention import LSTM_ATTENTION
+from LSTM.LSTM_Mix import LSTM_MIX
 from Transformers.transformer import Transformer
 #loss functions
 from Weightening.focal_loss import FocalLoss
 from Weightening.adaptive_focal_loss import FocalLossAdaptive
 #engines
-import engine
+#import engine
+import engine_CRF
 #libraries
 import torch
 import wandb 
@@ -79,7 +81,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     loss_fn = create_loos_function(loos_type)
     optimizer = create_optimizer(optimizer_type,model,learning_rate)
 
-    results =engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, 0.931) #stop i set 
+    results =engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.931) #stop i set 
 
     wandb.finish()
 
@@ -269,6 +271,12 @@ def create_model(hidden_units,output_shape,model_type,train,test, dropout=0, num
                                     dim_feedforward=dim_feedforward,
                                     nhead=nhead,
                                     )
+        elif model_type == "LSTM_MIX":
+            model = LSTM_MIX(input_shape=input_shape,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape,
+                                    dropout=dropout,
+                                    num_layers=num_layers)
         else:
             raise ValueError("wrong model_type")
     else:
@@ -305,7 +313,16 @@ def load_model_and_predict(model_path):
 
 if __name__ == "__main__":
     
-    train_and_predict(30,32,0,64,4,"LSTM_BASE",0.001,40)
+    train_and_predict(block_size=30,
+                      batch_size=64,
+                      target=0,
+                      hidden_units=64,
+                      output_shape=4,
+                      model_type="LSTM_MIX",
+                      learning_rate=0.001,
+                      num_epchos=64,
+                      dropout=0.2,
+                      num_layers=2)
     
     
     

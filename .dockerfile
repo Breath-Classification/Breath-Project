@@ -77,6 +77,7 @@ RUN pip install tqdm
 RUN pip install optuna
 RUN apt-get update 
 RUN apt-get install -y openssh-client
+RUN pip install git+https://github.com/kmkurn/pytorch-crf#egg=pytorch_crf
 WORKDIR /home/workspace
 
 # Default command: open a shell
