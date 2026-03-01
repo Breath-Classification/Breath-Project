@@ -22,7 +22,7 @@ def plot_results(model_path):
     
     
     
-    #X = X[:, :6] # zrobione dla pochodnych
+    #X = X[:, :6] # zrobione dla pochodnych #usun komentarze jezeli sliding window
 
     #X= X[:, -1] # size
     

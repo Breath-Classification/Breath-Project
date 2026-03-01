@@ -18,12 +18,12 @@ def objective(trial):
     dim_feedforward = trial.suggest_categorical("dim_feedforward", [16,32,64,128])
     results =train_and_predict(block_size=block_size,batch_size=batch_size,target=0,
                       hidden_units=hidden_units,output_shape=4,
-                      model_type="Transformer",learning_rate=lr,
-                      num_epchos=100,dropout=dropout,num_layers=num_layers,dim_feedforward=dim_feedforward,nhead=nhead,d_model=d_model)
+                      model_type="Transformer_CNN_CRF",learning_rate=lr,
+                      num_epchos=200,dropout=dropout,num_layers=num_layers,dim_feedforward=dim_feedforward,nhead=nhead,d_model=d_model)
     
     return max(results["max_test_acc"])
 
 
 study = optuna.create_study(direction="maximize")
-study.optimize(objective, n_trials=50)
+study.optimize(objective, n_trials=150)
 print("Najlepsze hiperparametry:", study.best_params)

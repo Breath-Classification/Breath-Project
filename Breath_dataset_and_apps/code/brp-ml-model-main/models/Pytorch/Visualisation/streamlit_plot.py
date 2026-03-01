@@ -14,7 +14,7 @@ def streamlit_plot_function(features, labels_predicted, labels_actual,key_prefix
     
     print("actual", labels_actual)
 
-    # jeśli features ma 2 wymiary (np. 96x30)
+    # jeśli labels_actual ma 2 wymiary (np. 96x30)
     if len(labels_actual.shape) == 2:
 
        

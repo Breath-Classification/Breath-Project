@@ -13,6 +13,7 @@ from LSTM.LSTM_Conv1 import LSTM_CONV1
 from LSTM.LSTM_Attention import LSTM_ATTENTION
 from LSTM.LSTM_Mix import LSTM_MIX
 from Transformers.transformer import Transformer
+from Transformers.transformer_CNN_CRF import Transformer_CNN_CRF
 #loss functions
 from Weightening.focal_loss import FocalLoss
 from Weightening.adaptive_focal_loss import FocalLossAdaptive
@@ -86,7 +87,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     wandb.finish()
 
     #optuna tuning 
-    #return results
+    return results
     
     config = {
         "block_size": block_size,
@@ -281,6 +282,16 @@ def create_model(hidden_units,output_shape,model_type,train,test, dropout=0, num
                                     output_shape=output_shape,
                                     dropout=dropout,
                                     num_layers=num_layers)
+        elif model_type == "Transformer_CNN_CRF":
+            model = Transformer_CNN_CRF(input_shape=input_shape,
+                                    d_model=d_model,
+                                    hidden_units=hidden_units,
+                                    output_shape=output_shape,
+                                    dropout=dropout,
+                                    num_layrer=num_layers,
+                                    dim_feedforward=dim_feedforward,
+                                    nhead=nhead,
+                                    )
         else:
             raise ValueError("wrong model_type")
     else:
@@ -322,7 +333,7 @@ if __name__ == "__main__":
                       target=0,
                       hidden_units=64,
                       output_shape=4,
-                      model_type="LSTM_MIX",
+                      model_type="Transformer_CNN_CRF",
                       learning_rate=0.001,
                       num_epchos=64,
                       dropout=0.2,
