@@ -17,7 +17,7 @@ from Transformers.transformer import Transformer
 from Weightening.focal_loss import FocalLoss
 from Weightening.adaptive_focal_loss import FocalLossAdaptive
 #engines
-#import engine
+import engine
 import engine_CRF
 #libraries
 import torch
@@ -144,8 +144,9 @@ def evaluate_model(model, test):
         print("hej")
         with torch.no_grad():
             for X, y in test:
-                y_pred = model(X)  
-                pred_classes = torch.argmax(y_pred, dim=1)  
+                y_pred = model(X)
+                print("y_predictionnn", y_pred.shape, y_pred)  
+                pred_classes = torch.argmax(y_pred, dim=2) #tu sie ustawia 1 albo 2  
                 all_preds.append(pred_classes.cpu())
                 all_trues.append(y.cpu())
                 all_features.append(X.cpu())
@@ -154,7 +155,10 @@ def evaluate_model(model, test):
             all_features =torch.cat(all_features)
             print(all_trues)
             print(all_features.size())
+            all_features = all_features[:, :, :6] ## sunnnnnn
+            all_features = all_features.reshape(-1, all_features.shape[2]) ### uwaga usunnn
             all_features = all_features.mean(dim=1) 
+            
             return all_preds, all_trues, all_features,0
     else:
         print("Uzywam HMM")

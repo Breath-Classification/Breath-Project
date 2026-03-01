@@ -22,9 +22,9 @@ def plot_results(model_path):
     
     
     
-    X = X[:, :6] # zrobione dla pochodnych
+    #X = X[:, :6] # zrobione dla pochodnych
 
-    X= X[:, -1] # size
+    #X= X[:, -1] # size
     
     
    
