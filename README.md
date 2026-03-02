@@ -1,6 +1,6 @@
 # Breath-Project
 xhost +local:docker
-pip install -e .
+pip install -e .  -uzywane aby byly zaleznosci miedzy plikami
 
 
 ## Tworzenie venva graficznego

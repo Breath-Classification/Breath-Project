@@ -7,6 +7,9 @@ from Visualisation.show_mistakes import mistakes_table
 from Visualisation.confusion_matrix import conf_Matrix
 from main import train_and_predict
 from Visualisation.show import plot_results
+from Visualisation.error_statistic import count_error
+from Visualisation.error_statistic import avg_sizeof_error
+from Visualisation.error_statistic import avg_position_error
 
 st.title("ML Model Tester")
 
@@ -19,6 +22,7 @@ def starting_page():
         st.write("Choose function")
         col11,col12 = st.columns(2)
         col21,col22 =st.columns(2)
+        col31,col32 = st.columns(2)
 
         if(col12.button("show")):
              st.session_state.page = "show"
@@ -32,6 +36,9 @@ def starting_page():
 
         if col22.button("confusion_matrix"):
             st.session_state.page = "matrix"
+            
+        if col31.button("error_statistic"):
+            st.session_state.page = "error_statistic"
 
         if st.session_state.page == "mistakes":
             mistakes()
@@ -44,6 +51,9 @@ def starting_page():
 
         elif st.session_state.page == "show":
             interactive_plot()
+            
+        elif st.session_state.page == "error_statistic":
+            statistic_plot()
 
 
 def mistakes():
@@ -227,6 +237,25 @@ def interactive_plot():
             for model in  st.session_state.selected_model:
                 plot_results(f"models/saved_models/{model}")
 
-                
+def statistic_plot():
+    path = Path("models/saved_models/")
+    files = [f.name for f in path.glob("*.pth")]
+    files = ["--- choose model ---"]+files
+    selected_file = st.multiselect("Choose saved model:", files)
+    
+    
+    if "--- choose model ---" not in selected_file:
+        if st.button("Confusion Matrix Analysis"):
+            for model_name in selected_file:
+                count =count_error(f"models/saved_models/{model_name}")
+                avg_sizeof = avg_sizeof_error(f"models/saved_models/{model_name}")
+                avg_pos = avg_position_error(f"models/saved_models/{model_name}",1,2)
+                st.subheader(f"Model {model_name}")
+
+                st.write(f"Średnia pozycja błędu: {avg_pos}")
+                st.write(f"Liczba błędów: {count}")
+                st.write(f"sredni rozmiar bedu: {avg_sizeof}")
+            st.session_state.error_statistic = False   
+                               
 
 starting_page()
