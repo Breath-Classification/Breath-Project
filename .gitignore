@@ -3,7 +3,8 @@
 
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/Animation/
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/visualisation/
-Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/saved_models/
+Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/models/saved_models/
+Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/models/mobile_models/
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/Matrix/
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/SavedData/
 Breath_dataset_and_apps/code/brp-ml-model-main/data

@@ -2,18 +2,18 @@
 from data_loader import create_dataloaders
 from torchvision import transforms
 #models
-from GRU.GruModel import GruModel
-from GRU.GruAttention import GRUAttentionModel
-from GRU.GruSeq import Seq2SeqGRU
-from LSTM.LSTM_Base import LSTM_BASE
-from LSTM.LSTM_Dropout import LSTM_DROPOUT
-from LSTM.LSTM_Stacked import LSTM_STACKED
-from LSTM.LSTM_Bidirectional import LSTM_BIDIRECTIONAL
-from LSTM.LSTM_Conv1 import LSTM_CONV1
-from LSTM.LSTM_Attention import LSTM_ATTENTION
-from LSTM.LSTM_Mix import LSTM_MIX
-from Transformers.transformer import Transformer
-from Transformers.transformer_CNN_CRF import Transformer_CNN_CRF
+from models.GRU.GruModel import GruModel
+from models.GRU.GruAttention import GRUAttentionModel
+from models.GRU.GruSeq import Seq2SeqGRU
+from models.LSTM.LSTM_Base import LSTM_BASE
+from models.LSTM.LSTM_Dropout import LSTM_DROPOUT
+from models.LSTM.LSTM_Stacked import LSTM_STACKED
+from models.LSTM.LSTM_Bidirectional import LSTM_BIDIRECTIONAL
+from models.LSTM.LSTM_Conv1 import LSTM_CONV1
+from models.LSTM.LSTM_Attention import LSTM_ATTENTION
+from models.LSTM.LSTM_Mix import LSTM_MIX
+from models.Transformers.transformer import Transformer
+from models.Transformers.transformer_CNN_CRF import Transformer_CNN_CRF
 #loss functions
 from Weightening.focal_loss import FocalLoss
 from Weightening.adaptive_focal_loss import FocalLossAdaptive
@@ -125,19 +125,19 @@ def save_model_mobile(model, filename="LSTM_BaseMobile"):
     traced_script_module = torch.jit.script(model)
     # Zapisujemy w folderze 'mobile_models'
     import os
-    os.makedirs("mobile_models", exist_ok=True)
-    traced_script_module.save(f"mobile_models/{filename}.pt")
-    print(f"TorchScript model saved as mobile_models/{filename}.pt")
+    os.makedirs("models/mobile_models", exist_ok=True)
+    traced_script_module.save(f"models/mobile_models/{filename}.pt")
+    print(f"TorchScript model saved as models/mobile_models/{filename}.pt")
     
 def save_model(model, config):
     #saving model
     if use_wandb == 'n':
         filename = input("input name of the saved model ")
-        torch.save(model.state_dict(), f"saved_models/{filename}.pth")
+        torch.save(model.state_dict(), f"models/saved_models/{filename}.pth")
     else:
-        torch.save(model.state_dict(), f"saved_models/Class_Weightening_{block_size}.pth")
+        torch.save(model.state_dict(), f"models/saved_models/Class_Weightening.pth")
     
-    with open(f"saved_models/{filename}.json", "w", encoding="utf-8") as f:
+    with open(f"models/saved_models/{filename}.json", "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
 
 def evaluate_model(model, test,dataset_type):

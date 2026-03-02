@@ -47,7 +47,7 @@ def starting_page():
 
 
 def mistakes():
-    path = Path("saved_models/")
+    path = Path("models/saved_models/")
     files = [f.name for f in path.glob("*.pth")]
     files = ["--- choose model ---"]+files
     selected_file = st.multiselect("Choose saved model:", files)
@@ -58,14 +58,14 @@ def mistakes():
 
                 st.subheader(f"Model: {model_name}")
 
-                labels, values =mistakes_table(f"saved_models/{model_name}")
+                labels, values =mistakes_table(f"models/saved_models/{model_name}")
                 fig, ax = plt.subplots()
                 ax.bar(labels, values)
                 ax.set_title(f"Mistakes for {model_name}")
                 st.pyplot(fig)
             st.session_state.show_mistakes_clicked = False
 def matrix():
-    path = Path("saved_models/")
+    path = Path("models/saved_models/")
     files = [f.name for f in path.glob("*.pth")]
     files = ["--- choose model ---"]+files
     selected_file = st.multiselect("Choose saved model:", files)
@@ -75,7 +75,7 @@ def matrix():
             for model_name in selected_file:
 
                 st.subheader(f"Model: {model_name}")
-                disp =conf_Matrix(f"saved_models/{model_name}")
+                disp =conf_Matrix(f"models/saved_models/{model_name}")
                 fig, ax = plt.subplots(figsize=(6,6))
                 disp.plot(ax=ax, cmap='Blues', colorbar=True)
 
@@ -211,7 +211,7 @@ def conf_hiperparametres():
 
 
 def interactive_plot():
-    path = Path("saved_models/")
+    path = Path("models/saved_models/")
     files = [f.name for f in path.glob("*.pth")]
     files = ["--- choose model ---"]+files
     selected_file = st.multiselect("Choose saved model:", files)
@@ -225,7 +225,7 @@ def interactive_plot():
                 st.session_state.selected_model = selected_file
         if st.session_state.analysis_started:
             for model in  st.session_state.selected_model:
-                plot_results(f"saved_models/{model}")
+                plot_results(f"models/saved_models/{model}")
 
                 
 
