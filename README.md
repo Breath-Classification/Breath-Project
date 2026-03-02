@@ -19,6 +19,7 @@ deactivate
 5) Attention LSTM
 6) Bidirectional LSTM
 
+pip install git+https://github.com/kmkurn/pytorch-crf#egg=pytorch_crf
 
 ✓ sliding window feature extraction
 ✓ temporal windowing

@@ -18,8 +18,9 @@ from Transformers.transformer_CNN_CRF import Transformer_CNN_CRF
 from Weightening.focal_loss import FocalLoss
 from Weightening.adaptive_focal_loss import FocalLossAdaptive
 #engines
-import engine
-import engine_CRF
+import Engines.engine
+import Engines.engine_CRF
+import Engines.engine_without_epsilon
 #libraries
 import torch
 import wandb 
@@ -54,10 +55,11 @@ if use_wandb != "y":
 
 
 def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
-                      model_type,learning_rate,num_epchos, 
+                      model_type,learning_rate,num_epchos,
+                      dataset_type="BlockDataset", 
                       loos_type ="CrossEntropyLoss", optimizer_type="Adam",
                       dropout =0, num_layers=2, dim_feedforward =64, 
-                      nhead  =2, d_model=32):
+                      nhead  =2, d_model=32, CRF=False):
    
     #logs
     wandb.init(
@@ -76,18 +78,21 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
             "optimizer":"Adam"
         }
     )
-    train,test =config_dataloaders(block_size,batch_size,target)
+    train,test =config_dataloaders(block_size,batch_size,target,dataset_type)
 
     model = create_model(hidden_units,output_shape,model_type,train,test,dropout,num_layers,dim_feedforward,nhead, d_model)
     loss_fn = create_loos_function(loos_type)
     optimizer = create_optimizer(optimizer_type,model,learning_rate)
 
-    results =engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.931) #stop i set 
-
+    if dataset_type=="BlockDataset":
+        results =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.931) #stop i set 
+    elif dataset_type=="SequenceBlockDataset":
+        results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.931) #stop i set 
+    
     wandb.finish()
 
     #optuna tuning 
-    return results
+    #return results
     
     config = {
         "block_size": block_size,
@@ -99,13 +104,14 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
         "learning_rate": learning_rate,
         "num_epochs": num_epchos,
         "loos_type":loos_type,
-        "optimizer_type":optimizer_type
+        "optimizer_type":optimizer_type,
+        "dataset_type":dataset_type
     }
     
     save_model(model,config)
-    save_model_mobile(model)
+    #save_model_mobile(model)
 
-    all_preds, all_trues, all_features,_ = evaluate_model(model,test)
+    all_preds, all_trues, all_features,_ = evaluate_model(model,test,dataset_type)
     return all_preds, all_trues, all_features
 def save_model_mobile(model, filename="LSTM_BaseMobile"):
     # Przełącz model w tryb ewaluacji
@@ -134,33 +140,55 @@ def save_model(model, config):
     with open(f"saved_models/{filename}.json", "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
 
-def evaluate_model(model, test):
+def evaluate_model(model, test,dataset_type):
     all_preds = []
     all_trues = []
 
     all_features = []
     model.eval()
     return_sequence = False # USED FOR HMM
+    
     if(not return_sequence):
-        print("hej")
-        with torch.no_grad():
-            for X, y in test:
-                y_pred = model(X)
-                print("y_predictionnn", y_pred.shape, y_pred)  
-                pred_classes = torch.argmax(y_pred, dim=2) #tu sie ustawia 1 albo 2  
-                all_preds.append(pred_classes.cpu())
-                all_trues.append(y.cpu())
-                all_features.append(X.cpu())
-            all_preds =torch.cat(all_preds)
-            all_trues =torch.cat(all_trues)
-            all_features =torch.cat(all_features)
-            print(all_trues)
-            print(all_features.size())
-            all_features = all_features[:, :, :6] ## sunnnnnn
-            all_features = all_features.reshape(-1, all_features.shape[2]) ### uwaga usunnn
-            all_features = all_features.mean(dim=1) 
+        if dataset_type=="BlockDataset":
+            with torch.no_grad():
+                for X, y in test:
+                    y_pred = model(X)
+                
+                    pred_classes = torch.argmax(y_pred, dim=1) 
+                    all_preds.append(pred_classes.cpu())
+                    all_trues.append(y.cpu())
+                    all_features.append(X.cpu())
+                all_preds =torch.cat(all_preds)
+                all_trues =torch.cat(all_trues)
+                all_features =torch.cat(all_features)
+        
+                
+                all_features = all_features.mean(dim=1)
+                 
+                all_features = all_features[:, :6] # usuwanie pochodnych pomyśl jak inaczej 
+
+                all_features= all_features[:, -1] 
+                
+                return all_preds, all_trues, all_features,0
+        elif dataset_type == "SequenceBlockDataset":
+            with torch.no_grad():
+                for X, y in test:
+                    y_pred = model(X)
+                
+                    pred_classes = torch.argmax(y_pred, dim=2)  
+                    all_preds.append(pred_classes.cpu())
+                    all_trues.append(y.cpu())
+                    all_features.append(X.cpu())
+                all_preds =torch.cat(all_preds)
+                all_trues =torch.cat(all_trues)
+                all_features =torch.cat(all_features)
+        
+                all_features = all_features[:, :, :6] 
+                all_features = all_features.reshape(-1, all_features.shape[2]) 
+                all_features = all_features.mean(dim=1) 
+                
+                return all_preds, all_trues, all_features,0
             
-            return all_preds, all_trues, all_features,0
     else:
         print("Uzywam HMM")
         all_paths = []
@@ -213,7 +241,7 @@ def create_optimizer(optimizer_type, model, learning_rate):
     return optimizer
 
 
-def config_dataloaders(block_size,batch_size,target):
+def config_dataloaders(block_size,batch_size,target,dataset_type):
     data_transform = transforms.Compose([
             transforms.Resize((64, 64)),
             transforms.ToTensor()
@@ -222,7 +250,8 @@ def config_dataloaders(block_size,batch_size,target):
     train, test = create_dataloaders(transform=data_transform,
                                          batch_size=batch_size,
                                          block_size=block_size,
-                                         target=target)
+                                         target=target,
+                                         dataset_type=dataset_type)
 
     return train,test
 
@@ -316,13 +345,14 @@ def load_model_and_predict(model_path):
     model_type =config["model_type"]
     learning_rate =config["learning_rate"]
     num_epchos =config["num_epochs"]
+    dataset_type =config["dataset_type"]
 
-    train,test= config_dataloaders(block_size,batch_size,target)
+    train,test= config_dataloaders(block_size,batch_size,target,dataset_type)
     model = create_model(hidden_units,output_shape,model_type,train,test)
     
     model.load_state_dict(torch.load(model_path))
 
-    all_preds, all_trues, all_features,all_paths = evaluate_model(model,test)
+    all_preds, all_trues, all_features,all_paths = evaluate_model(model,test,dataset_type)
     return all_preds,all_trues,all_features,all_paths
 
 
@@ -333,11 +363,12 @@ if __name__ == "__main__":
                       target=0,
                       hidden_units=64,
                       output_shape=4,
-                      model_type="Transformer_CNN_CRF",
+                      model_type="LSTM_MIX",
                       learning_rate=0.001,
                       num_epchos=64,
                       dropout=0.2,
-                      num_layers=2)
+                      num_layers=2,
+                      dataset_type="SequenceBlockDataset")
     
     
     

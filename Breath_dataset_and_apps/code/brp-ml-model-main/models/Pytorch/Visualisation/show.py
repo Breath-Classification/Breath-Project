@@ -21,13 +21,6 @@ def plot_results(model_path):
     y_pred,y_true,X,_ = load_model_and_predict(model_path)
     
     
-    
-    #X = X[:, :6] # zrobione dla pochodnych #usun komentarze jezeli sliding window
-
-    #X= X[:, -1] # size
-    
-    
-   
     streamlit_plot_function(X,y_pred,y_true,key_prefix=f"{model_path}original")
     
     for i in range(len(y_true)):

@@ -4,7 +4,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from data_download import BlockDataset
 from data_download import SequenceBlockDataset
-
+from data_download import SequenceDataset
 '''
 Purpose of this code is to create DataLoaders
 - Data is loaded using the custom BlockDataset class.
@@ -23,15 +23,27 @@ def create_dataloaders(
     batch_size: int, 
     block_size: int,
     target:int,
+    dataset_type :str,
     num_workers: int=0
+
 ):
 
   #GAUSIAN NOISE AUGUMENT -> TRUE else AUGUMENT -> FALSE
-  #train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size, augment=False)
-  #test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size, augment=False)
-  train_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
-  test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
-
+  if dataset_type == "BlockDataset":
+    train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size, augment=False)
+    test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size, augment=False)
+    
+  elif dataset_type == "SequenceBlockDataset":
+    train_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
+    test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
+    
+  elif dataset_type == "SequenceDataset":
+    train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
+    test_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
+    
+  else :
+      raise ValueError("wrong Dataset type")
+  
   train_dataloader = DataLoader(
       train_data,
       batch_size=batch_size,
