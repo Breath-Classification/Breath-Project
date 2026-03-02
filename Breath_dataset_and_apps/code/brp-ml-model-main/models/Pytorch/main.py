@@ -185,7 +185,12 @@ def evaluate_model(model, test,dataset_type):
         
                 all_features = all_features[:, :, :6] 
                 all_features = all_features.reshape(-1, all_features.shape[2]) 
-                all_features = all_features.mean(dim=1) 
+                all_features = all_features.mean(dim=1)
+                
+                all_features = all_features.squeeze(-1)
+                all_features = all_features.flatten()
+                all_trues = all_trues.flatten()
+                all_preds = all_preds.flatten() 
                 
                 return all_preds, all_trues, all_features,0
             
