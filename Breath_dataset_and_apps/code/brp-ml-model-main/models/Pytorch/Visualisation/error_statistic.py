@@ -73,4 +73,49 @@ def count_error(model_path):
         error_count+=1
   
     return error_count
+def transitions(model_path):
+    y_pred,y_true,X,_ = load_model_and_predict(model_path)
     
+    mistakes = {
+    "blue-green": 0,
+    "green-blue":0,
+    "blue-red": 0,
+    "red-blue":0,
+    "blue-yellow": 0,
+    "yellow-blue":0,
+    "green-red": 0,
+    "red-green":0,
+    "green-yellow": 0,
+    "yellow-green":0,
+    "yellow-red": 0,
+    "red-yellow":0
+    
+    }
+    for i in range(len(y_pred)-1):
+        previous = y_true[i]
+        next = y_true[i+1]
+        if previous == 0 and next == 1:
+            mistakes["green-red"] += 1
+        elif previous == 1 and next == 0:
+            mistakes["red-green"] += 1
+        elif previous == 0 and next == 2:
+            mistakes["blue-red"] += 1
+        elif previous == 2 and next == 0:
+            mistakes["red-blue"] += 1
+        elif previous == 0 and next == 3:
+            mistakes["yellow-red"] += 1
+        elif previous == 3 and next == 0:
+            mistakes["red-yellow"] += 1
+        elif previous == 1 and next == 2:
+            mistakes["blue-green"] += 1
+        elif previous == 2 and next == 1:
+            mistakes["green-blue"] += 1
+        elif previous == 1 and next == 3:
+            mistakes["green-yellow"] += 1
+        elif previous == 3 and next == 1:
+            mistakes["yellow-green"] += 1
+        elif previous == 2 and next == 3:
+            mistakes["blue-yellow"] += 1
+        elif previous == 3 and next == 2:
+            mistakes["yellow-blue"] += 1
+    return mistakes

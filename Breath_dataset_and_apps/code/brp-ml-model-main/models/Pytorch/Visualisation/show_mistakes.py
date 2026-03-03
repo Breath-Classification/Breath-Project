@@ -1,18 +1,12 @@
-import torch
-import matplotlib.pyplot as plt 
-from main import train_and_predict
+
 from main import load_model_and_predict
 from scripts.error_tolerance import acceptable_error
-import os
-import sys
-#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+
 
 def mistakes_table(model_path):
     y_pred,y_true,X,_ = load_model_and_predict(model_path)
     
-    print(X)
-    print("sciezka")
-    print(model_path)
     mistakes = {
     "blue-green": 0,
     "blue-red": 0,
