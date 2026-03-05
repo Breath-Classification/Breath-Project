@@ -123,7 +123,8 @@ def train(model: torch.nn.Module,                      #Main training loop
   maksimum_train_acc =0
 
   for epoch in tqdm(range(epochs)):
-      #model.crf.transitions.data[1,3] = -1e10
+      model.crf.transitions.data[1,3] = -1
+      model.crf.transitions.data[3,1] = -1
       
       train_loss, train_acc = train_step(model=model,
                                           dataloader=train_dataloader,
