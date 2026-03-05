@@ -167,7 +167,8 @@ def avg_min_max_class_lenght(model_path):
     
     counter =1
     for i in range(1,len(y_pred)):
-        
+        if(i>1820 and i<1840):
+            print (str(i),y_pred[i])
         if y_true[i-1]==y_true[i]:
             counter +=1 #count lenght of class
         else:

@@ -12,6 +12,7 @@ from typing import Dict, List, Tuple
 import wandb
 from scripts.error_tolerance import acceptable_error
 from scripts.HMM import viterbi_algorithm
+from PhysicalConstraints.avg_class_lenght_loss import min_duration_loss
 
 
 
@@ -34,7 +35,15 @@ def train_step(model: torch.nn.Module,  #Step where the model trains without con
       emissions = model(X)  # (B, seq_len, num_classes)
       mask = torch.ones_like(y, dtype=torch.bool)
       loss = -model.crf(emissions,y,mask)
+      
+      duration_penalty0 =min_duration_loss(emissions,0,3)
+      duration_penalty1 =min_duration_loss(emissions,1,3)
+      duration_penalty2 =min_duration_loss(emissions,2,3)
+      duration_penalty3 =min_duration_loss(emissions,3,3)
+      
       loss = loss.mean()  
+      lambda_con0 =0.1
+      loss = loss + lambda_con0*duration_penalty0 +lambda_con0*duration_penalty1 +lambda_con0*duration_penalty2 +lambda_con0*duration_penalty3
 
 
       train_loss += loss.item()
