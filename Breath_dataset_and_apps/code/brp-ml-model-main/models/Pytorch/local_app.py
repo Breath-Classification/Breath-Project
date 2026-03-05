@@ -11,6 +11,7 @@ from Visualisation.error_statistic import count_error
 from Visualisation.error_statistic import avg_sizeof_error
 from Visualisation.error_statistic import avg_position_error
 from Visualisation.error_statistic import transitions
+from Visualisation.error_statistic import avg_min_max_class_lenght
 
 
 st.title("ML Model Tester")
@@ -253,12 +254,15 @@ def statistic_plot():
                 avg_sizeof = avg_sizeof_error(f"models/saved_models/{model_name}")
                 avg_pos = avg_position_error(f"models/saved_models/{model_name}",1,2)
                 mistakes = transitions(f"models/saved_models/{model_name}")
+                lenght_info = avg_min_max_class_lenght(f"models/saved_models/{model_name}")
+                
                 st.subheader(f"Model {model_name}")
 
                 st.write(f"Średnia pozycja błędu: {avg_pos}")
                 st.write(f"Liczba błędów: {count}")
                 st.write(f"sredni rozmiar bedu: {avg_sizeof}")
                 st.write(f"transitions {mistakes}")
+                st.write(f"Rozmiary class {lenght_info}")
             st.session_state.error_statistic = False   
                                
 

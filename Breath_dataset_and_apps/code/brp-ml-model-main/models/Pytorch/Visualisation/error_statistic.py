@@ -119,3 +119,69 @@ def transitions(model_path):
         elif previous == 3 and next == 2:
             mistakes["yellow-blue"] += 1
     return mistakes
+
+def count_avg_min_max(true_class,ClassMin, ClassMax, ClassSum, ClassCount,counter):
+    ClassSum[true_class]+=counter
+    ClassCount[true_class]+=1
+    
+    if ClassMin[true_class]>counter:
+        ClassMin[true_class]=counter
+        
+    if ClassMax[true_class]<counter:
+        ClassMax[true_class]=counter
+    
+def avg_min_max_class_lenght(model_path):
+    y_pred,y_true,X,_ = load_model_and_predict(model_path)
+    
+    ClassMin = {
+        "red": 100, 
+        "blue": 100,
+        "green": 100,
+        "yellow":100
+    }
+    ClassMax = {
+        "red": -1, 
+        "blue": -1,
+        "green": -1,
+        "yellow":-1
+    }
+    ClassAvg = {
+        "red": 0, 
+        "blue": 0,
+        "green": 0,
+        "yellow":0
+    }
+    ClassSum= {
+        "red": 0, 
+        "blue": 0,
+        "green": 0,
+        "yellow":0
+    }
+    ClassCount={
+        "red": 0, 
+        "blue": 0,
+        "green": 0,
+        "yellow":0
+    }
+    
+    
+    counter =1
+    for i in range(1,len(y_pred)):
+        
+        if y_true[i-1]==y_true[i]:
+            counter +=1 #count lenght of class
+        else:
+            if y_true[i-1] == 0: #breath out
+                count_avg_min_max("red",ClassMin,ClassMax,ClassSum,ClassCount,counter)
+                    
+            elif y_true[i-1] == 1: #out no breath
+                count_avg_min_max("green",ClassMin,ClassMax,ClassSum,ClassCount,counter)
+                    
+            elif y_true[i-1] == 2: #breath in 
+                count_avg_min_max("blue",ClassMin,ClassMax,ClassSum,ClassCount,counter)
+                    
+            elif y_true[i-1] == 3: #in no breath
+                count_avg_min_max("yellow",ClassMin,ClassMax,ClassSum,ClassCount,counter)
+            counter =1 #clean counter new sequence
+            
+    return ClassMin,ClassMax,ClassAvg
