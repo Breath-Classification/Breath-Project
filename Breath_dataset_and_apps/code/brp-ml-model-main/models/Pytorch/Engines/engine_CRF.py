@@ -13,6 +13,7 @@ import wandb
 from scripts.error_tolerance import acceptable_error
 from scripts.HMM import viterbi_algorithm
 from PhysicalConstraints.avg_class_lenght_loss import min_duration_loss
+from PhysicalConstraints.breath_duration_loss import inhale_exhale_correlation
 
 
 
@@ -41,9 +42,16 @@ def train_step(model: torch.nn.Module,  #Step where the model trains without con
       duration_penalty2 =min_duration_loss(emissions,2,3)
       duration_penalty3 =min_duration_loss(emissions,3,3)
       
+      in_ex_penalty =inhale_exhale_correlation(emissions,0,10)
+      
+      
+      print("czy liczyony gradient")
+      print(duration_penalty0.requires_grad)
+      print(duration_penalty0.grad_fn)
+      
       loss = loss.mean()  
       lambda_con0 =0.1
-      loss = loss + lambda_con0*duration_penalty0 +lambda_con0*duration_penalty1 +lambda_con0*duration_penalty2 +lambda_con0*duration_penalty3
+      loss = loss + lambda_con0*duration_penalty0 +lambda_con0*duration_penalty1 +lambda_con0*duration_penalty2 +lambda_con0*duration_penalty3+lambda_con0*in_ex_penalty
 
 
       train_loss += loss.item()

@@ -167,8 +167,6 @@ def avg_min_max_class_lenght(model_path):
     
     counter =1
     for i in range(1,len(y_pred)):
-        if(i>1820 and i<1840):
-            print (str(i),y_pred[i])
         if y_true[i-1]==y_true[i]:
             counter +=1 #count lenght of class
         else:
@@ -184,5 +182,11 @@ def avg_min_max_class_lenght(model_path):
             elif y_true[i-1] == 3: #in no breath
                 count_avg_min_max("yellow",ClassMin,ClassMax,ClassSum,ClassCount,counter)
             counter =1 #clean counter new sequence
+     
+    ClassAvg["red"] = ClassSum["red"] / ClassCount["red"]
+    ClassAvg["blue"] = ClassSum["blue"] / ClassCount["blue"]
+    ClassAvg["green"] = ClassSum["green"] / ClassCount["green"]
+    ClassAvg["yellow"] = ClassSum["yellow"] / ClassCount["yellow"]
             
     return ClassMin,ClassMax,ClassAvg
+

@@ -1,22 +1,24 @@
 import torch
+import torch.nn.functional as F
 
 def min_duration_loss(emissions, target_class, min_len):
 
-    pred = torch.argmax(emissions, dim=-1)  # [B, T]
+    probs = F.softmax(emissions, dim=-1)          
+    pred = probs[..., target_class]               
 
-    loss = 0.0
+    loss = torch.tensor(0.0, device=emissions.device)
     batch_size = pred.shape[0]
 
     for seq in pred:
-        current_len = 0
+        current_len = 0.0
         
-        for label in seq:
-            if label == target_class:
-                current_len += 1
+        for p in seq:
+            if p > 0.5:                           
+                current_len += p                
             else:
                 if current_len > 0 and current_len < min_len:
                     loss += (min_len - current_len)
-                current_len = 0
+                current_len = 0.0
 
         if current_len > 0 and current_len < min_len:
             loss += (min_len - current_len)
