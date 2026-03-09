@@ -37,20 +37,20 @@ def train_step(model: torch.nn.Module,  #Step where the model trains without con
       mask = torch.ones_like(y, dtype=torch.bool)
       loss = -model.crf(emissions,y,mask)
       
-      duration_penalty0 =min_duration_loss(emissions,0,3)
-      duration_penalty1 =min_duration_loss(emissions,1,3)
-      duration_penalty2 =min_duration_loss(emissions,2,3)
-      duration_penalty3 =min_duration_loss(emissions,3,3)
+      duration_penalty0 =min_duration_loss(emissions,0,2)
+      duration_penalty1 =min_duration_loss(emissions,1,2)
+      duration_penalty2 =min_duration_loss(emissions,2,2)
+      duration_penalty3 =min_duration_loss(emissions,3,2)
       
-      in_ex_penalty =inhale_exhale_correlation(emissions,0,10)
+      in_ex_penalty = 0 #inhale_exhale_correlation(emissions,0,10)
       
       
-      print("czy liczyony gradient")
-      print(duration_penalty0.requires_grad)
-      print(duration_penalty0.grad_fn)
+      #print("czy liczyony gradient")
+      #print(duration_penalty0.requires_grad)
+      #print(duration_penalty0.grad_fn)
       
       loss = loss.mean()  
-      lambda_con0 =0.1
+      lambda_con0 =0.6
       loss = loss + lambda_con0*duration_penalty0 +lambda_con0*duration_penalty1 +lambda_con0*duration_penalty2 +lambda_con0*duration_penalty3+lambda_con0*in_ex_penalty
 
 
