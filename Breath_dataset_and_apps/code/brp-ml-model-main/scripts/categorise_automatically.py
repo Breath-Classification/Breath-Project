@@ -11,13 +11,10 @@ numbers = []
 number_string = []
 WINDOW_SIZE = 5
 
-SENSOR_NAME = "acc"
+SENSOR_NAME = "tens"
 
 current_directory = os.getcwd()
-desired_directory = (
-    os.path.dirname(os.path.dirname(current_directory))
-    + f"/brp-ml-model/data/raw/{SENSOR_NAME}/"
-)
+desired_directory = "../data/raw/Test/tens/"
 
 
 def monotonicity(data, data_size=5) -> list[int]:

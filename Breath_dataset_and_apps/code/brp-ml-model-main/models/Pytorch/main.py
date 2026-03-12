@@ -370,7 +370,7 @@ if __name__ == "__main__":
                       output_shape=4,
                       model_type="LSTM_MIX",
                       learning_rate=0.001,
-                      num_epchos=200,
+                      num_epchos=50,
                       dropout=0.2,
                       num_layers=2,
                       dataset_type="SequenceBlockDataset")

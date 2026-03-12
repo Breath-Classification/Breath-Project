@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-folder_path = "../data/raw/"
+folder_path = "../data/raw/Test" # Change without "Test" 
 
 for subdir in ["tens", "acc"]:
     subdir_path = os.path.join(folder_path, subdir)
