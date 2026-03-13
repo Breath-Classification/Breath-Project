@@ -2,10 +2,10 @@ import time
 
 import numpy as np
 
-from models.AbstractModel import SensorType
-from models.Conv1DModel import Conv1DModel
-from models.GRUModel import GRUModel
-from models.LSTMModel import LSTMModel
+from Models.AbstractModel import SensorType
+from Models.Conv1DModel import Conv1DModel
+from Models.GRUModel import GRUModel
+from Models.LSTMModel import LSTMModel
 from scripts.load_data import prepare_data_for_training
 from scripts.plot import plot_evaluation_history, plot_history, plot_test_data
 import matplotlib.pyplot as plt
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     print(f"Training time: {time.time() - time_before}")
     
     '''
-    model = GRUModel()
+    model = LSTMModel()
     model.load_data(
          filename=f"data/pretrained/{SENSOR_NAME}_sequence/{SENSOR_NAME}_concatenated.txt",
          sensor_type=f"{SENSOR_NAME}",
@@ -102,9 +102,9 @@ if __name__ == "__main__":
     time_before = time.time()
     model.fit(sensor_type=f"{SENSOR_NAME}", epochs=100)
     print(f"Training time: {time.time() - time_before}")
-    model.load(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
-    model.save(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
-    model.confusion_matrix(model.X_test, model.y_test, name=f"{SENSOR_NAME}_test")
-    model.plot_prediction(model.X_test, name=f"{SENSOR_NAME}_test")
-    plot_history(f"models/saves/{SENSOR_NAME}/GRUModel.history")
-    plot_test_data(SENSOR_NAME, normalize_data=True)
+    #model.load(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
+    #model.save(f"models/saves/{SENSOR_NAME}/GRUModel_{SENSOR_NAME}")
+    #model.confusion_matrix(model.X_test, model.y_test, name=f"{SENSOR_NAME}_test")
+    #model.plot_prediction(model.X_test, name=f"{SENSOR_NAME}_test")
+    #plot_history(f"models/saves/{SENSOR_NAME}/GRUModel.history")
+    #plot_test_data(SENSOR_NAME, normalize_data=True)

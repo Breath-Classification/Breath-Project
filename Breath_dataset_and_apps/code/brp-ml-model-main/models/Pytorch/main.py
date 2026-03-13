@@ -163,11 +163,9 @@ def evaluate_model(model, test,dataset_type):
                 all_features =torch.cat(all_features)
         
                 
+                all_features = all_features[:, -1, :6]
                 all_features = all_features.mean(dim=1)
-                 
-                all_features = all_features[:, :6] # usuwanie pochodnych pomyśl jak inaczej 
 
-                all_features= all_features[:, -1] 
                 
                 return all_preds, all_trues, all_features,0
         elif dataset_type == "SequenceBlockDataset":

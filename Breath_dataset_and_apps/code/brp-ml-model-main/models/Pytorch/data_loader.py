@@ -35,7 +35,7 @@ def create_dataloaders(
     
   elif dataset_type == "SequenceBlockDataset":
     train_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
-    test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/test2.txt",block_size) #zmienilem plik
+    test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size) #zmienilem plik
     
   elif dataset_type == "SequenceDataset":
     train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
