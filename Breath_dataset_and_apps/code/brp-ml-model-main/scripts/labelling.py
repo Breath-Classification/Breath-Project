@@ -9,11 +9,11 @@ from matplotlib.widgets import SpanSelector
 matplotlib.use("TkAgg")
 
 # Load data from txt file
-FILENAME = "yellow"
-tens_file_path = f"../data/pretrained/tens/tens_{FILENAME}.txt"
-acc_file_path = f"../data/pretrained/acc/acc_{FILENAME}.txt"
+FILENAME = "julia"
+tens_file_path = f"data/NewData/raw/test_{FILENAME}.txt"
+#acc_file_path = f"../data/pretrained/acc/acc_{FILENAME}.txt"
 tens_data = np.loadtxt(tens_file_path, delimiter=",")
-acc_data = np.loadtxt(acc_file_path, delimiter=",")
+#acc_data = np.loadtxt(acc_file_path, delimiter=",")
 
 # Constants
 COLOR_MAP = {-1.0: "red", 0.0: "green", 1.0: "blue", 2.0: "orange", 999.0: "black"}
@@ -82,7 +82,7 @@ def update_point_color(start_index, end_index, new_color, data, file_path):
     for i in range(start_index, end_index):
         data[i, 1] = new_color
     plot_data(ax1, tens_data, current_start_index_tens, "Tens Plot")
-    plot_data(ax2, acc_data, current_start_index_acc, "Acc Plot")
+   # plot_data(ax2, acc_data, current_start_index_acc, "Acc Plot")
 
     # Save updated data to the txt file
     np.savetxt(file_path, data, fmt="%.18f", delimiter=",")
@@ -165,7 +165,7 @@ def on_key(event, data, current_start_index, ax):
                 span_selector_acc.set_active(False)
 
     plot_data(ax1, tens_data, current_start_index_tens, "Tens Plot")
-    plot_data(ax2, acc_data, current_start_index_acc, "Acc Plot")
+   # plot_data(ax2, acc_data, current_start_index_acc, "Acc Plot")
 
 
 def on_span_select(
@@ -226,17 +226,17 @@ fig.canvas.mpl_connect(
     "key_press_event",
     lambda event: on_key(event, tens_data, current_start_index_tens, ax1),
 )
-fig.canvas.mpl_connect(
-    "pick_event",
-    lambda event: onpick(event, acc_data, current_start_index_acc, acc_file_path),
-)
-fig.canvas.mpl_connect(
-    "key_press_event",
-    lambda event: on_key(event, acc_data, current_start_index_acc, ax2),
-)
+#fig.canvas.mpl_connect(
+ #   "pick_event",
+ #   lambda event: onpick(event, acc_data, current_start_index_acc, acc_file_path),
+#)
+#fig.canvas.mpl_connect(
+ #   "key_press_event",
+#    lambda event: on_key(event, acc_data, current_start_index_acc, ax2),
+#)
 
 plot_data(ax1, tens_data, current_start_index_tens, "Tens Plot")
-plot_data(ax2, acc_data, current_start_index_acc, "Acc Plot")
+#plot_data(ax2, acc_data, current_start_index_acc, "Acc Plot")
 # Create a SpanSelector for tens plot
 span_selector_tens = SpanSelector(
     ax1,
@@ -244,11 +244,13 @@ span_selector_tens = SpanSelector(
         xmin,
         xmax,
         tens_data,
-        acc_data,
+        "",
+       # acc_data,
         current_start_index_tens,
         ax1,
         tens_file_path,
-        acc_file_path,
+        "",
+        #acc_file_path,
     ),
     "horizontal",
     useblit=True,
@@ -262,10 +264,12 @@ span_selector_acc = SpanSelector(
         xmin,
         xmax,
         tens_data,
-        acc_data,
+        "",
+      #  acc_data,
         current_start_index_acc,
         ax2,
-        acc_file_path,
+        "",
+      #  acc_file_path,
     ),
     "horizontal",
     useblit=True,
