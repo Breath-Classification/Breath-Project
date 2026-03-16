@@ -12,7 +12,7 @@ def standard_accuracy(model_path):
         if y_pred[i]==y_true[i]:
             correct_prediction+=1
         
-    return (n_samples/correct_prediction) *100
+    return (correct_prediction/n_samples) *100
 
 def with_epsilon_accuracy(model_path):
     y_pred,y_true,_,_ = load_model_and_predict(model_path)
@@ -25,7 +25,7 @@ def with_epsilon_accuracy(model_path):
         elif acceptable_error(y_pred,y_true,i,2): #EPSILON = 2  data on boundaries with sizeof <= 2 is not included in error
             correct_prediction+=1
         
-    return (n_samples/correct_prediction) *100
+    return (correct_prediction/n_samples) *100
 
 def number_of_transitions_accuracy(model_path):
     y_pred,y_true,_,_ = load_model_and_predict(model_path)
@@ -49,10 +49,11 @@ def cycle_accuracy(model_path):
     pred_cycle=0
     true_cycle=0
     while i < n_samples:
+        
         if y_true[i] == 2:
             is_cycle = True
             start_inhale = True
-            for j in range(i,n_samples):
+            for j in range(i+1,n_samples):
                 if y_true[j] != y_pred[j]:
                     if not acceptable_error(y_pred,y_true,j,2):
                         is_cycle = False
@@ -60,14 +61,14 @@ def cycle_accuracy(model_path):
                     start_inhale = False
                 if y_true[j]==2 and start_inhale==False and is_cycle==True:
                     pred_cycle+=1
-                elif y_true[j]==2 and start_inhale==False:
+                if y_true[j]==2 and start_inhale==False:
                     true_cycle+=1
-                    i=j
-                    break     
+                    i=j+1
+                    break
+                if j==n_samples-1:
+                    i=n_samples+1     
         else:
             i+=1
     return (pred_cycle/true_cycle) *100
 
-if __name__ == "__main__":
-    print(cycle_accuracy("models/saved_models/JuliaLabel"))
 

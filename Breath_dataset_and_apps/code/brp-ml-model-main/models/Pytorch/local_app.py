@@ -12,7 +12,10 @@ from Visualisation.error_statistic import avg_sizeof_error
 from Visualisation.error_statistic import avg_position_error
 from Visualisation.error_statistic import transitions
 from Visualisation.error_statistic import avg_min_max_class_lenght
-
+from Visualisation.evaluation_metrics import standard_accuracy
+from Visualisation.evaluation_metrics import with_epsilon_accuracy
+from Visualisation.evaluation_metrics import cycle_accuracy
+from Visualisation.evaluation_metrics import number_of_transitions_accuracy
 
 st.title("ML Model Tester")
 
@@ -42,6 +45,9 @@ def starting_page():
             
         if col31.button("error_statistic"):
             st.session_state.page = "error_statistic"
+            
+        if col32.button("accuracy_statistic"):
+            st.session_state.page = "accuracy_statistic"
 
         if st.session_state.page == "mistakes":
             mistakes()
@@ -57,6 +63,9 @@ def starting_page():
             
         elif st.session_state.page == "error_statistic":
             statistic_plot()
+            
+        elif st.session_state.page == "accuracy_statistic":
+            accuracy()
 
 
 def mistakes():
@@ -265,5 +274,29 @@ def statistic_plot():
                 st.write(f"Rozmiary class {lenght_info}")
             st.session_state.error_statistic = False   
                                
+def accuracy():
+    path = Path("models/saved_models/")
+    files = [f.name for f in path.glob("*.pth")]
+    files = ["--- choose model ---"]+files
+    selected_file = st.multiselect("Choose saved model:", files)
+    
+    
+    if "--- choose model ---" not in selected_file:
+        if st.button("Test"):
+            for model_name in selected_file:
+                acc = standard_accuracy(f"models/saved_models/{model_name}")
+                acc_epsiolon = with_epsilon_accuracy(f"models/saved_models/{model_name}")
+                transition = number_of_transitions_accuracy(f"models/saved_models/{model_name}")
+                acc_cycle = cycle_accuracy(f"models/saved_models/{model_name}")
+                
+                st.subheader(f"Model {model_name}")
+
+                st.write(f"standard accuracy: {acc}")
+                st.write(f"epsilon accuracy: {acc_epsiolon}")
+                st.write(f"transition: {transition}")
+                st.write(f"accuracy cycle: {acc_cycle}")
+                
+            st.session_state.accuracy_statistic = False   
+    
 
 starting_page()
