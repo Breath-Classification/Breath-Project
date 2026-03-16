@@ -29,6 +29,7 @@ scripts/convert_timestamps.py
 scripts/error_tolerance.py
 scripts/labelling.py
 scripts/load_data.py
+scripts/load_data2.py
 scripts/normalization.py
 scripts/plot.py
 scripts/transfer_labels.py
