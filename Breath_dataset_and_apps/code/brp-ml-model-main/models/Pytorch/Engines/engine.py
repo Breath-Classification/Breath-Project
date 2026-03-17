@@ -125,8 +125,9 @@ def train(model: torch.nn.Module,                      #Main training loop
       "train_acc": [],
       "test_loss": [],
       "test_acc": [],
-      "max_test_acc":[]
+      "max_test_acc":[],
   }
+  end = False
   best_scores={
     "max_test_acc":0.0,
     "max_train_acc":0.0,
@@ -189,6 +190,7 @@ def train(model: torch.nn.Module,                      #Main training loop
       
       #Save the model when its performance exceeds the stop_point
       if(stop==True and test_acc>=stop_point):
+        end = True
         break
 
   wandb.summary.update({
@@ -198,4 +200,4 @@ def train(model: torch.nn.Module,                      #Main training loop
     "final_train_loss":best_scores["final_train_loss"]
   })
   
-  return results
+  return results,end

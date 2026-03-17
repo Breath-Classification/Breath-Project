@@ -59,7 +59,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
                       dataset_type="BlockDataset", 
                       loos_type ="CrossEntropyLoss", optimizer_type="Adam",
                       dropout =0, num_layers=2, dim_feedforward =64, 
-                      nhead  =2, d_model=32, CRF=False):
+                      nhead  =2, d_model=32,best_acc=0.99):
    
     #logs
     wandb.init(
@@ -85,14 +85,15 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     optimizer = create_optimizer(optimizer_type,model,learning_rate)
 
     if dataset_type=="BlockDataset":
-        results =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.931) #stop i set 
+        results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, best_acc) #stop i set 
     elif dataset_type=="SequenceBlockDataset":
-        results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, 0.942) #stop i set 
+        results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.942) #stop i set 
     
     wandb.finish()
 
     #optuna tuning 
     #return results
+    
     
     config = {
         "block_size": block_size,
@@ -108,8 +109,12 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
         "dataset_type":dataset_type
     }
     
-    save_model(model,config)
+    if end ==True:
+        save_model(model,config,path="models/saved_models/BlockDataset/one_to_one",filename=f"{model_type}_{best_acc:.4f}")
     #save_model_mobile(model)
+    return results
+    
+    
 
     all_preds, all_trues, all_features,_ = evaluate_model(model,test,dataset_type)
     return all_preds, all_trues, all_features
@@ -129,15 +134,16 @@ def save_model_mobile(model, filename="LSTM_BaseMobile"):
     traced_script_module.save(f"models/mobile_models/{filename}.pt")
     print(f"TorchScript model saved as models/mobile_models/{filename}.pt")
     
-def save_model(model, config):
+def save_model(model, config, path, filename=""):
     #saving model
     if use_wandb == 'n':
-        filename = input("input name of the saved model ")
-        torch.save(model.state_dict(), f"models/saved_models/{filename}.pth")
+        if filename=="":
+            filename = input("input name of the saved model ")
+        torch.save(model.state_dict(), f"{path}/{filename}.pth")
     else:
-        torch.save(model.state_dict(), f"models/saved_models/Class_Weightening.pth")
+        torch.save(model.state_dict(), f"{path}/Class_Weightening.pth")
     
-    with open(f"models/saved_models/{filename}.json", "w", encoding="utf-8") as f:
+    with open(f"{path}/{filename}.json", "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
 
 def evaluate_model(model, test,dataset_type):
@@ -368,7 +374,7 @@ if __name__ == "__main__":
                       output_shape=4,
                       model_type="LSTM_MIX",
                       learning_rate=0.001,
-                      num_epchos=50,
+                      num_epchos=2,
                       dropout=0.2,
                       num_layers=2,
                       dataset_type="SequenceBlockDataset")

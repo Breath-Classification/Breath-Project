@@ -31,11 +31,11 @@ def create_dataloaders(
   #GAUSIAN NOISE AUGUMENT -> TRUE else AUGUMENT -> FALSE
   if dataset_type == "BlockDataset":
     train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size, augment=False)
-    test_data = BlockDataset("../../data/pretrained/tens_sequence/test2.txt",block_size, augment=False)
+    test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size, augment=False)
     
   elif dataset_type == "SequenceBlockDataset":
     train_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
-    test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/test_julia.txt",block_size) #zmienilem plik
+    test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size) #zmienilem plik
     
   elif dataset_type == "SequenceDataset":
     train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
