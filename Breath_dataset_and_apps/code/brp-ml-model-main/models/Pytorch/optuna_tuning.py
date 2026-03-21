@@ -10,7 +10,7 @@ def objective(trial,model_type):
 
     lr =trial.suggest_float("lr", 1e-7, 1e-2, log=True)
     hidden_units = trial.suggest_int("hidden_units", 64, 128)
-    batch_size = trial.suggest_categorical("batch_size", [32,64,128])
+    batch_size = trial.suggest_categorical("batch_size", [32,64,128,256,512,1024])
     block_size = trial.suggest_int("block_size", 30,30)
     dropout = trial.suggest_float("dropout", 0.05, 0.6)
     num_layers =trial.suggest_int("num_layers", 1,3)
