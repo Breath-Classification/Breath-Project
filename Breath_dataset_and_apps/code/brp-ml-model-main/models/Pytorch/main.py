@@ -77,15 +77,16 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
             "loss_fn":"CrossEntropyLoss",
             "optimizer":"Adam"
         }
-    )
+    ) 
     train,test =config_dataloaders(block_size,batch_size,target,dataset_type)
 
     model = create_model(hidden_units,output_shape,model_type,train,test,dropout,num_layers,dim_feedforward,nhead, d_model)
+    model.to("cuda")
     loss_fn = create_loos_function(loos_type)
     optimizer = create_optimizer(optimizer_type,model,learning_rate)
 
     if dataset_type=="BlockDataset":
-        results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", True, best_acc) #stop i set 
+        results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, best_acc) #stop i set 
     elif dataset_type=="SequenceBlockDataset":
         results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.942) #stop i set 
     
@@ -110,7 +111,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     }
     
     if end ==True:
-        save_model(model,config,path="models/saved_models/BlockDataset/one_to_one",filename=f"{model_type}_{best_acc:.4f}")
+        save_model(model,config,path="models/saved_models/BlockDataset/many_to_one",filename=f"{model_type}_{best_acc:.4f}")
     #save_model_mobile(model)
     return results
     

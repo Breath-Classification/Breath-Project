@@ -24,7 +24,7 @@ def create_dataloaders(
     block_size: int,
     target:int,
     dataset_type :str,
-    num_workers: int=0
+    num_workers: int=4,
 
 ):
 
