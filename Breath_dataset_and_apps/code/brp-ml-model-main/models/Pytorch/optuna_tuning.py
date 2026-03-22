@@ -23,7 +23,7 @@ def objective(trial,model_type):
             head_dim, nhead, d_model,dim_feedforward = None, None, None,None
     results =train_and_predict(block_size=block_size,batch_size=batch_size,target=0,
                       hidden_units=hidden_units,output_shape=4,
-                      dataset_type="BlockDataset",
+                      dataset_type="SequenceDataset",
                       model_type=model_type,learning_rate=lr,
                       num_epchos=60,dropout=dropout,num_layers=num_layers,
                       dim_feedforward=dim_feedforward,
@@ -39,6 +39,7 @@ def objective(trial,model_type):
 if __name__ == "__main__":
     
     models =[
+        "LSTM_ATTENTION",
         "LSTM_CONV1",
         "LSTM_DROPOUT",
         "LSTM_BASE",
@@ -49,6 +50,8 @@ if __name__ == "__main__":
    
     ]
     
+    
+   
     for model in models:
         best_scores[model] = 0.92
         study = optuna.create_study(direction="maximize")

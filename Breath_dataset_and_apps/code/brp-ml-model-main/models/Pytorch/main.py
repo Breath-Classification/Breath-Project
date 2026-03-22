@@ -56,7 +56,7 @@ if use_wandb != "y":
 
 def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
                       model_type,learning_rate,num_epchos,
-                      dataset_type="BlockDataset", 
+                      dataset_type="SequenceDataset", 
                       loos_type ="CrossEntropyLoss", optimizer_type="Adam",
                       dropout =0, num_layers=2, dim_feedforward =64, 
                       nhead  =2, d_model=32,best_acc=0.99):
@@ -88,7 +88,9 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     if dataset_type=="BlockDataset":
         results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, best_acc) #stop i set 
     elif dataset_type=="SequenceBlockDataset":
-        results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.942) #stop i set 
+        results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.942) #stop i set
+    elif  dataset_type=="SequenceDataset":
+        results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set 
     
     wandb.finish()
 
@@ -109,9 +111,9 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
         "optimizer_type":optimizer_type,
         "dataset_type":dataset_type
     }
-    
+    end=True
     if end ==True:
-        save_model(model,config,path="models/saved_models/BlockDataset/many_to_one",filename=f"{model_type}_{best_acc:.4f}")
+        save_model(model,config,path="models/saved_models/",filename=f"{model_type}_S{best_acc:.4f}")
     #save_model_mobile(model)
     return results
     
@@ -197,6 +199,28 @@ def evaluate_model(model, test,dataset_type):
                 all_trues = all_trues.flatten()
                 all_preds = all_preds.flatten() 
                 
+                return all_preds, all_trues, all_features,0
+        elif dataset_type == "SequenceDataset":
+            with torch.no_grad():
+                for X, y in test:
+                    y_pred = model(X)
+
+                    pred_classes = torch.argmax(y_pred, dim=1)
+                    all_preds.append(pred_classes.cpu())
+                    all_trues.append(y.cpu())
+                    all_features.append(X.cpu())
+                all_preds = torch.cat(all_preds)
+                all_trues = torch.cat(all_trues)
+                all_features = torch.cat(all_features)
+
+                all_features = all_features[:, 0, :6]
+                all_features = all_features.mean(dim=1)
+
+                all_features = all_features.squeeze(-1)
+                all_features = all_features.flatten()
+                all_trues = all_trues.flatten()
+                all_preds = all_preds.flatten()
+
                 return all_preds, all_trues, all_features,0
             
     else:
@@ -373,12 +397,12 @@ if __name__ == "__main__":
                       target=0,
                       hidden_units=64,
                       output_shape=4,
-                      model_type="LSTM_MIX",
+                      model_type="LSTM_ATTENTION",
                       learning_rate=0.001,
                       num_epchos=2,
                       dropout=0.2,
                       num_layers=2,
-                      dataset_type="SequenceBlockDataset")
+                      dataset_type="SequenceDataset")
     
     
     
