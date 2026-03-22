@@ -38,8 +38,8 @@ def create_dataloaders(
     test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size) #zmienilem plik
     
   elif dataset_type == "SequenceDataset":
-    train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
-    test_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size)
+    train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt")
+    test_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_test.txt")
     
   else :
       raise ValueError("wrong Dataset type")

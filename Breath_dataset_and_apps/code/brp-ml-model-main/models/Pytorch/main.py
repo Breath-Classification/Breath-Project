@@ -213,7 +213,15 @@ def evaluate_model(model, test,dataset_type):
                 all_trues = torch.cat(all_trues)
                 all_features = torch.cat(all_features)
 
-                all_features = all_features[:, 0, :6]
+                # SequenceDataset can be:
+                # - [N, F] when expand_dims=False
+                # - [N, 1, F] when expand_dims=True
+                if all_features.dim() == 3:
+                    all_features = all_features[:, 0, :6]
+                elif all_features.dim() == 2:
+                    all_features = all_features[:, :6]
+                else:
+                    raise ValueError(f"Unexpected SequenceDataset feature shape: {all_features.shape}")
                 all_features = all_features.mean(dim=1)
 
                 all_features = all_features.squeeze(-1)
@@ -292,7 +300,9 @@ def config_dataloaders(block_size,batch_size,target,dataset_type):
 def create_model(hidden_units,output_shape,model_type,train,test, dropout=0, num_layers=2, dim_feedforward =64, nhead  =2, d_model=32):
     
     X_batch, y_batch = next(iter(train))
-    input_shape = X_batch.shape[2]
+   
+    input_shape = X_batch.shape[-1]
+   
 
     if use_wandb == 'n':
         if model_type == "LSTM_ATTENTION":

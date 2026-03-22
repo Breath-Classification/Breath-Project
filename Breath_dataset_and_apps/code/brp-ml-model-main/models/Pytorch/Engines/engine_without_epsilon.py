@@ -23,6 +23,9 @@ def train_step(model: torch.nn.Module,
   for batch, (X, y) in enumerate(dataloader):
 
       X, y = X.to(device), y.to(device)
+      if X.dim() == 2:
+          X = X.unsqueeze(1)
+
 
       y_pred = model(X)
 
@@ -60,6 +63,9 @@ def test_step(model: torch.nn.Module,
       for batch, (X, y) in enumerate(dataloader):
          
           X, y = X.to(device), y.to(device)
+          if X.dim() == 2:
+            X = X.unsqueeze(1)
+
   
           
           test_pred_logits = model(X)

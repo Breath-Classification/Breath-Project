@@ -14,7 +14,7 @@ from keras.src.utils import to_categorical
 '''
 
 class SequenceDataset(Dataset): #Data loaded sequentially
-    def __init__(self, filename, expand_dims=True, convert_to_categorical=False):
+    def __init__(self, filename, expand_dims=False, convert_to_categorical=False):
        
         train_sequences = []
         with open(filename, "r") as f:

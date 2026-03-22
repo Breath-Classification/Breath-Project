@@ -44,6 +44,12 @@ class LSTM_ATTENTION(nn.Module):
 
     def forward(self, x):
         
+        if x.dim() == 2:
+            x = x.unsqueeze(1)
+        elif x.dim() != 3:
+            raise ValueError(f"Expected input with 2 or 3 dims, got shape: {x.shape}")
+
+        
         x = x.permute(0,2,1) #change dimensions to fit into conv1d
         
         x = self.conv(x)
