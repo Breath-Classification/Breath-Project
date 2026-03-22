@@ -90,7 +90,9 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     elif dataset_type=="SequenceBlockDataset":
         results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.942) #stop i set
     elif  dataset_type=="SequenceDataset":
-        results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set 
+        results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set
+    elif  dataset_type=="SequenceBlockWindowDataset":
+        results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set  
     
     wandb.finish()
 
