@@ -11,7 +11,7 @@ def objective(trial,model_type):
     lr =trial.suggest_float("lr", 1e-7, 1e-2, log=True)
     hidden_units = trial.suggest_int("hidden_units", 64, 128)
     batch_size = trial.suggest_categorical("batch_size", [32,64,128,256,512,1024])
-    block_size = trial.suggest_int("block_size", 30,30)
+    block_size = trial.suggest_int("block_size", 1,1)
     dropout = trial.suggest_float("dropout", 0.05, 0.6)
     num_layers =trial.suggest_int("num_layers", 1,3)
     if model_type == "Transformer":
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     
    
     for model in models:
-        best_scores[model] = 0.92
+        best_scores[model] = 0.86
         study = optuna.create_study(direction="maximize")
         study.optimize(lambda trial: objective(trial,model), n_trials=50)
         print("Najlepsze hiperparametry:", study.best_params)
