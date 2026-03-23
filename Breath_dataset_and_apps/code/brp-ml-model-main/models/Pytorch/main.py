@@ -92,7 +92,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     elif  dataset_type=="SequenceDataset":
         results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set
     elif  dataset_type=="SequenceBlockWindowDataset":
-        results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set  
+        results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, 0.90) #stop i set  
     
     wandb.finish()
 
@@ -434,7 +434,7 @@ if __name__ == "__main__":
                       output_shape=4,
                       model_type="LSTM_MIX",
                       learning_rate=0.001,
-                      num_epchos=2,
+                      num_epchos=50,
                       dropout=0.2,
                       num_layers=2,
                       dataset_type="SequenceBlockWindowDataset")
