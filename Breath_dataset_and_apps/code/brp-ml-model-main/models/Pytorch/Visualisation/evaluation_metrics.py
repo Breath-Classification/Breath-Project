@@ -39,7 +39,10 @@ def number_of_transitions_accuracy(model_path):
         if y_pred[i-1]!=y_pred[i]:
             predicted_transitions+=1
          
-    return true_transitions/predicted_transitions
+    if predicted_transitions == 0:
+        return 0.0
+
+    return (true_transitions/predicted_transitions) *100
 
 def cycle_accuracy(model_path):
     y_pred,y_true,_,_ = load_model_and_predict(model_path)
