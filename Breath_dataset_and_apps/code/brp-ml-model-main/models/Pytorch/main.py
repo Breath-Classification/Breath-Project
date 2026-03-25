@@ -124,16 +124,11 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     all_preds, all_trues, all_features,_ = evaluate_model(model,test,dataset_type)
     return all_preds, all_trues, all_features
 def save_model_mobile(model, filename="LSTM_BaseMobile"):
-    # Przełącz model w tryb ewaluacji
+ 
     model.eval()
-    
-    # Tworzymy przykładowy tensor wejściowy (musisz dopasować do swojego inputu)
-    example_input = torch.rand(1, 30, 6)  # np. batch=1, 30x6 wartości
-    
-    # Tworzymy TorchScript
-    #traced_script_module = torch.jit.trace(model, example_input)
+
     traced_script_module = torch.jit.script(model)
-    # Zapisujemy w folderze 'mobile_models'
+   
     import os
     os.makedirs("models/mobile_models", exist_ok=True)
     traced_script_module.save(f"models/mobile_models/{filename}.pt")
@@ -310,27 +305,28 @@ def create_optimizer(optimizer_type, model, learning_rate, fine_tuning="None"):
         else:
             raise ValueError("wrong optimizer_type")
         return optimizer
-    else: 
-        if fine_tuning == "adapter":
-            if optimizer_type == "Adam":
-                optimizer = torch.optim.Adam(list(model.adapter.parameters()), lr=learning_rate)
-            else:
-                raise ValueError("wrong optimizer_type")
-            return optimizer
-        elif fine_tuning == "fc":
-            if optimizer_type == "Adam":
-                optimizer = torch.optim.Adam(list(model.fc.parameters()), lr=learning_rate)
-            else:
-                raise ValueError("wrong optimizer_type")
-            return optimizer
-        elif fine_tuning == "adapter_fc":
-            if optimizer_type == "Adam":
-                optimizer = torch.optim.Adam(list(model.fc.parameters())+list(model.adapter.parameters()), lr=learning_rate)
-            else:
-                raise ValueError("wrong optimizer_type")
-            return optimizer
-        else:
-            raise ValueError("wrong fine_tuning type")
+    else:
+        match fine_tuning: 
+            case "adapter":
+                if optimizer_type == "Adam":
+                    optimizer = torch.optim.Adam(list(model.adapter.parameters()), lr=learning_rate)
+                else:
+                    raise ValueError("wrong optimizer_type")
+                return optimizer
+            case "fc":
+                if optimizer_type == "Adam":
+                    optimizer = torch.optim.Adam(list(model.fc.parameters()), lr=learning_rate)
+                else:
+                    raise ValueError("wrong optimizer_type")
+                return optimizer
+            case  "adapter_fc":
+                if optimizer_type == "Adam":
+                    optimizer = torch.optim.Adam(list(model.fc.parameters())+list(model.adapter.parameters()), lr=learning_rate)
+                else:
+                    raise ValueError("wrong optimizer_type")
+                return optimizer
+            case _:
+                raise ValueError("wrong fine_tuning type")
             
 
 
@@ -356,68 +352,68 @@ def create_model(hidden_units,output_shape,model_type,train,test, dropout=0, num
    
 
     if use_wandb == 'n':
-        if model_type == "LSTM_ATTENTION":
-            model = LSTM_ATTENTION(input_shape=input_shape,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape,
-                                    dropout=dropout,
-                                    num_layers=num_layers)
-        elif model_type == "LSTM_STACKED":
-            model = LSTM_STACKED(input_shape=input_shape,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape)
-        elif model_type == "GruModel":
-            model = GruModel(input_shape=input_shape,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape)
-        elif model_type == "LSTM_BIDIRECTIONAL":
-            model = LSTM_BIDIRECTIONAL(input_shape=input_shape,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape)
-        elif model_type == "GRUAttentionModel":
-            model = GRUAttentionModel(input_shape=input_shape,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape)
-        elif model_type == "LSTM_BASE":
-            model = LSTM_BASE(input_shape=input_shape,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape)
-        elif model_type == "LSTM_DROPOUT":
-            model = LSTM_DROPOUT(input_shape=input_shape,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape)
-        elif model_type == "LSTM_CONV1":
-            model = LSTM_CONV1(input_shape=input_shape,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape)
-        elif model_type == "Transformer":
-            model = Transformer(input_shape=input_shape,
-                                    d_model=d_model,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape,
-                                    dropout=dropout,
-                                    num_layrer=num_layers,
-                                    dim_feedforward=dim_feedforward,
-                                    nhead=nhead,
-                                    )
-        elif model_type == "LSTM_MIX":
-            model = LSTM_MIX(input_shape=input_shape,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape,
-                                    dropout=dropout,
-                                    num_layers=num_layers)
-        elif model_type == "Transformer_CNN_CRF":
-            model = Transformer_CNN_CRF(input_shape=input_shape,
-                                    d_model=d_model,
-                                    hidden_units=hidden_units,
-                                    output_shape=output_shape,
-                                    dropout=dropout,
-                                    num_layrer=num_layers,
-                                    dim_feedforward=dim_feedforward,
-                                    nhead=nhead,
-                                    )
-        else:
-            raise ValueError("wrong model_type")
+        
+        match model_type:
+            case "LSTM_ATTENTION":
+                model = LSTM_ATTENTION(input_shape=input_shape,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape,
+                                        dropout=dropout,
+                                        num_layers=num_layers)
+            case "LSTM_STACKED":
+                model = LSTM_STACKED(input_shape=input_shape,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape)
+            case "GruModel":
+                model = GruModel(input_shape=input_shape,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape)
+            case "LSTM_BIDIRECTIONAL":
+                model = LSTM_BIDIRECTIONAL(input_shape=input_shape,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape)
+            case "GRUAttentionModel":
+                model = GRUAttentionModel(input_shape=input_shape,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape)
+            case "LSTM_BASE":
+                model = LSTM_BASE(input_shape=input_shape,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape)
+            case "LSTM_DROPOUT":
+                    model = LSTM_DROPOUT(input_shape=input_shape,
+                                            hidden_units=hidden_units,
+                                            output_shape=output_shape)
+            case "LSTM_CONV1":
+                model = LSTM_CONV1(input_shape=input_shape,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape)
+            case "Transformer":
+                model = Transformer(input_shape=input_shape,
+                                        d_model=d_model,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape,
+                                        dropout=dropout,
+                                        num_layrer=num_layers,
+                                        dim_feedforward=dim_feedforward,
+                                        nhead=nhead)
+            case "LSTM_MIX":
+                model = LSTM_MIX(input_shape=input_shape,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape,
+                                        dropout=dropout,
+                                        num_layers=num_layers)
+            case "Transformer_CNN_CRF":
+                model = Transformer_CNN_CRF(input_shape=input_shape,
+                                        d_model=d_model,
+                                        hidden_units=hidden_units,
+                                        output_shape=output_shape,
+                                        dropout=dropout,
+                                        num_layrer=num_layers,
+                                        dim_feedforward=dim_feedforward,
+                                        nhead=nhead)
+            case _:
+                raise ValueError("wrong model_type")
     else:
         model = Transformer(input_shape=input_shape,d_model=32,
                                     hidden_units=hidden_units,
@@ -472,7 +468,7 @@ def load_model(model_path, train_data_txt = "../../data/pretrained/tens_sequence
     
     model.load_state_dict(torch.load(model_path),strict=False)
     
-    return model
+    return model,train,test,config
 
 if __name__ == "__main__":
     
