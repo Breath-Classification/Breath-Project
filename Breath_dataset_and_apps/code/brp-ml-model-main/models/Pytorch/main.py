@@ -300,12 +300,38 @@ def create_loos_function(loss_type):
         raise ValueError("wrong loss_type")
     return loss_fn
 
-def create_optimizer(optimizer_type, model, learning_rate):
-    if optimizer_type == "Adam":
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    else:
-        raise ValueError("wrong optimizer_type")
-    return optimizer
+def create_optimizer(optimizer_type, model, learning_rate, fine_tuning="None"):
+    
+    
+    #TODO change if to Switch
+    if fine_tuning =="None":
+        if optimizer_type == "Adam":
+            optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+        else:
+            raise ValueError("wrong optimizer_type")
+        return optimizer
+    else: 
+        if fine_tuning == "adapter":
+            if optimizer_type == "Adam":
+                optimizer = torch.optim.Adam(list(model.adapter.parameters()), lr=learning_rate)
+            else:
+                raise ValueError("wrong optimizer_type")
+            return optimizer
+        elif fine_tuning == "fc":
+            if optimizer_type == "Adam":
+                optimizer = torch.optim.Adam(list(model.fc.parameters()), lr=learning_rate)
+            else:
+                raise ValueError("wrong optimizer_type")
+            return optimizer
+        elif fine_tuning == "adapter_fc":
+            if optimizer_type == "Adam":
+                optimizer = torch.optim.Adam(list(model.fc.parameters())+list(model.adapter.parameters()), lr=learning_rate)
+            else:
+                raise ValueError("wrong optimizer_type")
+            return optimizer
+        else:
+            raise ValueError("wrong fine_tuning type")
+            
 
 
 def config_dataloaders(block_size,batch_size,target,dataset_type):
@@ -424,6 +450,29 @@ def load_model_and_predict(model_path):
     all_preds, all_trues, all_features,all_paths = evaluate_model(model,test,dataset_type)
     return all_preds,all_trues,all_features,all_paths
 
+def load_model(model_path, train_data_txt = "../../data/pretrained/tens_sequence/tens_concatenated.txt", test_data_txt="../../data/pretrained/tens_sequence/tens_test.txt"):
+    
+    filename = model_path[:-4]
+    with open(f"{filename}.json", "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    
+    block_size =config["block_size"]
+    batch_size =config["batch_size"]
+    target =config["target"]
+    hidden_units =config["hidden_units"]
+    output_shape =config["output_shape"]
+    model_type =config["model_type"]
+    learning_rate =config["learning_rate"]
+    num_epchos =config["num_epochs"]
+    dataset_type =config["dataset_type"]
+
+    train,test= config_dataloaders(block_size,batch_size,target,dataset_type,train_data_txt,test_data_txt)
+    model = create_model(hidden_units,output_shape,model_type,train,test)
+    
+    model.load_state_dict(torch.load(model_path),strict=False)
+    
+    return model
 
 if __name__ == "__main__":
     

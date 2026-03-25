@@ -26,25 +26,27 @@ def create_dataloaders(
     target:int,
     dataset_type :str,
     num_workers: int=4,
+    train_data_txt: str ="../../data/pretrained/tens_sequence/tens_concatenated.txt",
+    test_data_txt: str ="../../data/pretrained/tens_sequence/tens_test.txt"
 
 ):
 
   #GAUSIAN NOISE AUGUMENT -> TRUE else AUGUMENT -> FALSE
   if dataset_type == "BlockDataset":
-    train_data = BlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size, augment=False)
-    test_data = BlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size, augment=False)
+    train_data = BlockDataset(train_data_txt,block_size, augment=False)
+    test_data = BlockDataset(test_data_txt,block_size, augment=False)
     
   elif dataset_type == "SequenceBlockDataset":
-    train_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
-    test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size) #zmienilem plik
+    train_data = SequenceBlockDataset(train_data_txt,block_size)
+    test_data = SequenceBlockDataset(test_data_txt,block_size) 
   
   elif dataset_type == "SequenceBlockWindowDataset":
-    train_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
-    test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size) #zmienilem plik
+    train_data = SequenceBlockDataset(train_data_txt,block_size)
+    test_data = SequenceBlockDataset(test_data_txt,block_size) 
   
   elif dataset_type == "SequenceDataset":
-    train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt")
-    test_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_test.txt")
+    train_data = SequenceDataset(train_data_txt)
+    test_data = SequenceDataset(test_data_txt)
     
   else :
       raise ValueError("wrong Dataset type")
