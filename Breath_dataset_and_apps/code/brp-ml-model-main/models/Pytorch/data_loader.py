@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from data_download import BlockDataset
 from data_download import SequenceBlockDataset
 from data_download import SequenceDataset
+from data_download import SequenceBlockWindowDataset
 '''
 Purpose of this code is to create DataLoaders
 - Data is loaded using the custom BlockDataset class.
@@ -36,7 +37,11 @@ def create_dataloaders(
   elif dataset_type == "SequenceBlockDataset":
     train_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
     test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size) #zmienilem plik
-    
+  
+  elif dataset_type == "SequenceBlockWindowDataset":
+    train_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt",block_size)
+    test_data = SequenceBlockDataset("../../data/pretrained/tens_sequence/tens_test.txt",block_size) #zmienilem plik
+  
   elif dataset_type == "SequenceDataset":
     train_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_concatenated.txt")
     test_data = SequenceDataset("../../data/pretrained/tens_sequence/tens_test.txt")
