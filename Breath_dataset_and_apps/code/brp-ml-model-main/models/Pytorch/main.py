@@ -81,7 +81,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     train,test =config_dataloaders(block_size,batch_size,target,dataset_type)
 
     model = create_model(hidden_units,output_shape,model_type,train,test,dropout,num_layers,dim_feedforward,nhead, d_model)
-    model.to("cuda")
+   # model.to("cuda")
     loss_fn = create_loos_function(loos_type)
     optimizer = create_optimizer(optimizer_type,model,learning_rate)
 
