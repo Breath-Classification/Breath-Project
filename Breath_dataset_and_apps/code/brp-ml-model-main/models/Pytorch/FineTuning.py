@@ -89,3 +89,4 @@ def split_data(path): #get data from server split it into test and train data
     return
 if __name__ == "__main__":
     personalized_tuning("path","data","data","path")
+    

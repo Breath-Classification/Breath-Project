@@ -248,7 +248,7 @@ def evaluate_model(model, test,dataset_type):
                 all_features = all_features.flatten()
                 all_trues = all_trues.flatten()
                 all_preds = all_preds.flatten()
-
+                
                 return all_preds, all_trues, all_features,0
             
     else:
@@ -482,7 +482,7 @@ if __name__ == "__main__":
                       num_epchos=50,
                       dropout=0.2,
                       num_layers=2,
-                      dataset_type="SequenceBlockWindowDataset")
+                      dataset_type="SequenceBlockDataset")
     
     
     
