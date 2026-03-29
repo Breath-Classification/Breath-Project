@@ -52,7 +52,7 @@ if __name__ == "__main__":
     
    
     for model in models:
-        best_scores[model] = 0.92
+        best_scores[model] = 0.935
         study = optuna.create_study(direction="maximize")
         study.optimize(lambda trial: objective(trial,model), n_trials=200)
         print("Najlepsze hiperparametry:", study.best_params)

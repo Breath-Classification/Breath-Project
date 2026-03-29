@@ -13,7 +13,7 @@
   },
   "overrideCommand": false,
   "runArgs": [
-    "--gpus=all",
+    "--gpus", "all",
     "--env=DISPLAY=${localEnv:DISPLAY}",
     "--volume=/tmp/.X11-unix:/tmp/.X11-unix"
   ],
