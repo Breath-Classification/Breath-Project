@@ -90,7 +90,9 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     elif dataset_type=="SequenceBlockDataset":
         results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, best_acc,lambda_con0,lambda_con1,lambda_con2,lambda_con3) #stop i set
     elif  dataset_type=="SequenceDataset":
-        results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set 
+        results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set
+    elif dataset_type=="SequenceBlockWindowDataset":
+        results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, best_acc,lambda_con0,lambda_con1,lambda_con2,lambda_con3) #stop i set 
     
     wandb.finish()
 
@@ -113,7 +115,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     }
     
     if end ==True:
-        save_model(model,config,path="models/saved_models/SequenceBlockDataset/NoWindow/NoCRF",filename=f"{model_type}_{best_acc:.4f}")
+        save_model(model,config,path="models/saved_models/SequenceBlockDataset/Window/NoCRF",filename=f"{model_type}_{best_acc:.4f}")
     #save_model_mobile(model)
     return results
     

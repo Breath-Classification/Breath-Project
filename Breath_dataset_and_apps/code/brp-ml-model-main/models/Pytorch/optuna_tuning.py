@@ -27,7 +27,7 @@ def objective(trial,model_type):
             head_dim, nhead, d_model,dim_feedforward = None, None, None,None
     results =train_and_predict(block_size=block_size,batch_size=batch_size,target=0,
                       hidden_units=hidden_units,output_shape=4,
-                      dataset_type="SequenceBlockDataset",
+                      dataset_type="SequenceBlockWindowDataset",
                       model_type=model_type,learning_rate=lr,
                       num_epchos=100,dropout=dropout,num_layers=num_layers,
                       dim_feedforward=dim_feedforward,
