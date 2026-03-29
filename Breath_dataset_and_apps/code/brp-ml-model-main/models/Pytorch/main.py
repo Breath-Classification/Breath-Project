@@ -59,7 +59,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
                       dataset_type="SequenceDataset", 
                       loos_type ="CrossEntropyLoss", optimizer_type="Adam",
                       dropout =0, num_layers=2, dim_feedforward =64, 
-                      nhead  =2, d_model=32,best_acc=0.99):
+                      nhead  =2, d_model=32,best_acc=0.99,lambda_con0=0,lambda_con1=0,lambda_con2=0,lambda_con3=0):
    
     #logs
     wandb.init(
@@ -88,11 +88,11 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     if dataset_type=="BlockDataset":
         results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, best_acc) #stop i set 
     elif dataset_type=="SequenceBlockDataset":
-        results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cpu", False, 0.942) #stop i set
+        results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, best_acc,lambda_con0,lambda_con1,lambda_con2,lambda_con3) #stop i set
     elif  dataset_type=="SequenceDataset":
         results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set
-    elif  dataset_type=="SequenceBlockWindowDataset":
-        results =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, 0.90) #stop i set  
+    elif dataset_type=="SequenceBlockWindowDataset":
+        results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, best_acc,lambda_con0,lambda_con1,lambda_con2,lambda_con3) #stop i set 
     
     wandb.finish()
 
@@ -113,9 +113,9 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
         "optimizer_type":optimizer_type,
         "dataset_type":dataset_type
     }
-    end=True
+    
     if end ==True:
-        save_model(model,config,path="models/saved_models/",filename=f"{model_type}_S{best_acc:.4f}")
+        save_model(model,config,path="models/saved_models/SequenceBlockDataset/Window/NoCRF",filename=f"{model_type}_{best_acc:.4f}")
     #save_model_mobile(model)
     return results
     
@@ -224,29 +224,6 @@ def evaluate_model(model, test,dataset_type):
                     all_features = all_features[:, :6]
                 else:
                     raise ValueError(f"Unexpected SequenceDataset feature shape: {all_features.shape}")
-                all_features = all_features.mean(dim=1)
-
-                all_features = all_features.squeeze(-1)
-                all_features = all_features.flatten()
-                all_trues = all_trues.flatten()
-                all_preds = all_preds.flatten()
-
-                return all_preds, all_trues, all_features,0
-        elif dataset_type == "SequenceBlockWindowDataset":
-            with torch.no_grad():
-                for X, y in test:
-                    y_pred = model(X)
-
-                    pred_classes = torch.argmax(y_pred, dim=2)
-                    all_preds.append(pred_classes.cpu())
-                    all_trues.append(y.cpu())
-                    all_features.append(X.cpu())
-                all_preds = torch.cat(all_preds)
-                all_trues = torch.cat(all_trues)
-                all_features = torch.cat(all_features)
-
-                all_features = all_features[:, :, :6]
-                all_features = all_features.reshape(-1, all_features.shape[2])
                 all_features = all_features.mean(dim=1)
 
                 all_features = all_features.squeeze(-1)
@@ -434,10 +411,10 @@ if __name__ == "__main__":
                       output_shape=4,
                       model_type="LSTM_MIX",
                       learning_rate=0.001,
-                      num_epchos=50,
+                      num_epchos=2,
                       dropout=0.2,
                       num_layers=2,
-                      dataset_type="SequenceBlockWindowDataset")
+                      dataset_type="SequenceBlockDataset")
     
     
     

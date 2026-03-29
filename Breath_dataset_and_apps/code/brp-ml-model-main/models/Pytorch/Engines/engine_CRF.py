@@ -24,7 +24,12 @@ def train_step(model: torch.nn.Module,  #Step where the model trains without con
                dataloader: torch.utils.data.DataLoader, 
                loss_fn: torch.nn.Module, 
                optimizer: torch.optim.Optimizer,
-               device: torch.device) -> Tuple[float, float]:
+               device: torch.device,
+               lambda_con0 : float,
+               lambda_con1 : float,
+               lambda_con2 : float,
+               lambda_con3 : float
+               ) -> Tuple[float, float]:
 
   model.train()
   train_loss, train_acc = 0, 0
@@ -37,12 +42,12 @@ def train_step(model: torch.nn.Module,  #Step where the model trains without con
       mask = torch.ones_like(y, dtype=torch.bool)
       loss = -model.crf(emissions,y,mask)
       
-      duration_penalty0 =min_duration_loss(emissions,0,2)
+      duration_penalty0 =min_duration_loss(emissions,0,2) 
       duration_penalty1 =min_duration_loss(emissions,1,2)
       duration_penalty2 =min_duration_loss(emissions,2,2)
       duration_penalty3 =min_duration_loss(emissions,3,2)
       
-      in_ex_penalty = 0 #inhale_exhale_correlation(emissions,0,10)
+      #in_ex_penalty = 0 #inhale_exhale_correlation(emissions,0,10)
       
       
       #print("czy liczyony gradient")
@@ -50,8 +55,8 @@ def train_step(model: torch.nn.Module,  #Step where the model trains without con
       #print(duration_penalty0.grad_fn)
       
       loss = loss.mean()  
-      lambda_con0 =0.6
-      loss = loss + lambda_con0*duration_penalty0 +lambda_con0*duration_penalty1 +lambda_con0*duration_penalty2 +lambda_con0*duration_penalty3+lambda_con0*in_ex_penalty
+      
+      loss = loss + lambda_con0*duration_penalty0 +lambda_con1*duration_penalty1 +lambda_con2*duration_penalty2 +lambda_con3*duration_penalty3# +lambda_con0*in_ex_penalty
 
 
       train_loss += loss.item()
@@ -119,7 +124,11 @@ def train(model: torch.nn.Module,                      #Main training loop
           epochs: int,
           device: torch.device,
           stop: bool,
-          stop_point: float) -> Dict[str, List]:
+          stop_point: float,
+          lambda_con0 : float,
+          lambda_con1 : float,
+          lambda_con2 : float,
+          lambda_con3 : float) -> Dict[str, List]:
 
   results = {
     "epoch":[],
@@ -138,22 +147,27 @@ def train(model: torch.nn.Module,                      #Main training loop
   
   maksimum_test_acc =0
   maksimum_train_acc =0
+  end = False
 
   for epoch in tqdm(range(epochs)):
-      model.crf.transitions.data[1,3] = -1
-      model.crf.transitions.data[3,1] = -1
+      #model.crf.transitions.data[1,3] = -1
+      #model.crf.transitions.data[3,1] = -1
       
       train_loss, train_acc = train_step(model=model,
                                           dataloader=train_dataloader,
                                           loss_fn=loss_fn,
                                           optimizer=optimizer,
-                                          device=device)
+                                          device=device,
+                                          lambda_con0=lambda_con0,
+                                          lambda_con1=lambda_con1,
+                                          lambda_con2=lambda_con2,
+                                          lambda_con3=lambda_con3)
       test_loss, test_acc = test_step(model=model,
           dataloader=test_dataloader,
           loss_fn=loss_fn,
           device=device)
-      print("Macierz przejść CRF:") 
-      print(model.crf.transitions)
+      #print("Macierz przejść CRF:") 
+      #print(model.crf.transitions)
       #Save the results to the results dictionary and to wandb
 
       wandb.log({
@@ -194,7 +208,9 @@ def train(model: torch.nn.Module,                      #Main training loop
       results["max_test_acc"].append(maksimum_test_acc)
       
       #Save the model when its performance exceeds the stop_point
+      
       if(stop==True and test_acc>=stop_point):
+        end = True
         break
 
   wandb.summary.update({
@@ -204,4 +220,4 @@ def train(model: torch.nn.Module,                      #Main training loop
     "final_train_loss":best_scores["final_train_loss"]
   })
   
-  return results
+  return results,end
