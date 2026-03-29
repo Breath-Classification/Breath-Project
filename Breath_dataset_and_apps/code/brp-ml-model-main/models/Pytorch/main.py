@@ -115,11 +115,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     }
     end=True
     if end ==True:
-<<<<<<< HEAD
         save_model(model,config,path="models/saved_models/",filename=f"{model_type}_S{best_acc:.4f}")
-=======
-        save_model(model,config,path="models/saved_models/BlockDataset/one_to_one",filename=f"{model_type}_{best_acc:.4f}")
->>>>>>> b62bfa5 ( merge)
     #save_model_mobile(model)
     return results
     
