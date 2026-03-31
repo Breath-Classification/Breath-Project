@@ -4,6 +4,7 @@ import torch
 from main import  load_model
 from main import create_optimizer
 from main import create_loos_function
+from data_loader import create_dataloaders
 
 #engines
 import Engines.engine
@@ -45,7 +46,7 @@ def train_layer(model,train,test,layer,config):
     
     num_epchos = 5 #set small epchos
     
-    loss_fn = create_loos_function("CrossEntropylLoss") #bledna nazwa chyba zmien na poprawna
+    loss_fn = create_loos_function("CrossEntropyLoss") 
     match dataset_type:
         case "BlockDataset":
             results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.99) #stop i set 
