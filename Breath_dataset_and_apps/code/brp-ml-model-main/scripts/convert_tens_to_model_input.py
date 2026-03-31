@@ -3,6 +3,8 @@ import csv
 from datetime import datetime
 from pathlib import Path
 
+from pseudo_labeling import label as apply_pseudo_labeling
+
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SCRIPT_DIR.parent
@@ -10,6 +12,7 @@ DATA_DIR = PROJECT_DIR / "data" / "NewData"
 OUTPUT_DIR = DATA_DIR / "sequence"
 PRETRAINED_DIR = DATA_DIR / "pretrained"
 RAW_ISO_VALUE = "raw_iso_value"
+RAW_ISO_VALUE_PREDICTION_CONFIDENCE = "raw_iso_value_prediction_confidence"
 PRETRAINED_VALUE_LABEL_TIME = "pretrained_value_label_time"
 DEFAULT_WINDOW_SIZE = 5
 DEFAULT_MOVING_AVERAGE = 5
@@ -82,6 +85,16 @@ def detect_input_format(rows: list[list[str]]) -> str:
     if len(first) < 2:
         raise ValueError("Each row must contain at least two comma-separated values.")
 
+    if len(first) >= 4:
+        try:
+            parse_timestamp(first[0])
+            float(first[1])
+            float(first[2])
+            float(first[3])
+            return RAW_ISO_VALUE_PREDICTION_CONFIDENCE
+        except ValueError:
+            pass
+
     try:
         parse_timestamp(first[0])
         float(first[1])
@@ -99,8 +112,8 @@ def detect_input_format(rows: list[list[str]]) -> str:
             pass
 
     raise ValueError(
-        "Unsupported input format. Expected 'timestamp,value[,predicted_class,confidence]' "
-        "or 'value,label,time'."
+        "Unsupported input format. Expected 'timestamp,value', "
+        "'timestamp,value,predicted_class,confidence' or 'value,label,time[,confidence]'."
     )
 
 
@@ -110,6 +123,18 @@ def convert_raw_to_seconds_and_values(rows: list[list[str]]) -> tuple[list[float
     start = min(timestamps)
     seconds = [(timestamp - start).total_seconds() for timestamp in timestamps]
     return seconds, values
+
+
+def convert_predicted_rows(
+    rows: list[list[str]],
+) -> tuple[list[float], list[float], list[int], list[float]]:
+    timestamps = [parse_timestamp(row[0]) for row in rows]
+    values = [float(row[1]) for row in rows]
+    labels = [int(float(row[2])) for row in rows]
+    confidences = [float(row[3]) for row in rows]
+    start = min(timestamps)
+    seconds = [(timestamp - start).total_seconds() for timestamp in timestamps]
+    return seconds, values, labels, confidences
 
 
 def moving_average(values: list[float], window_size: int) -> list[float]:
@@ -180,7 +205,9 @@ def raw_to_pretrained(
     raw_values: list[float],
     moving_average_window: int,
     normalization_range: int,
-) -> tuple[list[float], list[int], list[float]]:
+    source_labels: list[int] | None = None,
+    source_confidences: list[float] | None = None,
+) -> tuple[list[float], list[int], list[float], list[float] | None]:
     smoothed = moving_average(raw_values, moving_average_window)
     normalized = normalize(smoothed, normalization_range)
 
@@ -191,8 +218,19 @@ def raw_to_pretrained(
 
     aligned_times = seconds[moving_average_window - 1 :]
     aligned_times = aligned_times[-len(normalized) :]
-    labels = monotonicity(normalized)
-    return normalized, labels, aligned_times
+
+    if source_labels is None:
+        labels = monotonicity(normalized)
+    else:
+        labels = source_labels[moving_average_window - 1 :]
+        labels = labels[-len(normalized) :]
+
+    aligned_confidences = None
+    if source_confidences is not None:
+        aligned_confidences = source_confidences[moving_average_window - 1 :]
+        aligned_confidences = aligned_confidences[-len(normalized) :]
+
+    return normalized, labels, aligned_times, aligned_confidences
 
 
 def pretrained_to_sequences(
@@ -208,10 +246,38 @@ def pretrained_to_sequences(
     return sequences
 
 
-def save_pretrained(path: Path, values: list[float], labels: list[int], times: list[float]):
+def pretrained_to_sequences_with_confidence(
+    values: list[float],
+    labels: list[float],
+    confidences: list[float],
+    sequence_size: int,
+) -> list[list[float]]:
+    sequences = []
+    for index in range(sequence_size, len(values)):
+        position = index - sequence_size + sequence_size // 2
+        sequence = values[index - sequence_size : index]
+        feature = abs(max(sequence) - min(sequence))
+        label = labels[position] + 1
+        confidence = confidences[position]
+        sequences.append(sequence + [feature, label, confidence])
+    return sequences
+
+
+def save_pretrained(
+    path: Path,
+    values: list[float],
+    labels: list[int],
+    times: list[float],
+    confidences: list[float] | None = None,
+):
     with path.open("w", encoding="utf-8", newline="") as handle:
-        for value, label, time_value in zip(values, labels, times):
-            handle.write(f"{value},{label},{time_value}\n")
+        if confidences is None:
+            for value, label, time_value in zip(values, labels, times):
+                handle.write(f"{value},{label},{time_value}\n")
+            return
+
+        for value, label, time_value, confidence in zip(values, labels, times, confidences):
+            handle.write(f"{value},{label},{time_value},{confidence}\n")
 
 
 def save_sequences(path: Path, sequences: list[list[float]]):
@@ -220,11 +286,16 @@ def save_sequences(path: Path, sequences: list[list[float]]):
             handle.write(",".join(str(item) for item in sequence) + "\n")
 
 
-def load_pretrained_rows(rows: list[list[str]]) -> tuple[list[float], list[float], list[float]]:
+def load_pretrained_rows(
+    rows: list[list[str]],
+) -> tuple[list[float], list[float], list[float], list[float] | None]:
     values = [float(row[0]) for row in rows]
     labels = [float(row[1]) for row in rows]
     times = [float(row[2]) for row in rows]
-    return values, labels, times
+    confidences = None
+    if all(len(row) >= 4 for row in rows):
+        confidences = [float(row[3]) for row in rows]
+    return values, labels, times, confidences
 
 
 def process_file(
@@ -237,18 +308,44 @@ def process_file(
     rows = read_rows(input_path)
     input_format = detect_input_format(rows)
 
+    confidences = None
     if input_format == RAW_ISO_VALUE:
         seconds, raw_values = convert_raw_to_seconds_and_values(rows)
-        values, labels, times = raw_to_pretrained(
+        values, labels, times, confidences = raw_to_pretrained(
             seconds,
             raw_values,
             moving_average_window=moving_average_window,
             normalization_range=normalization_range,
         )
+    elif input_format == RAW_ISO_VALUE_PREDICTION_CONFIDENCE:
+        seconds, raw_values, source_labels, source_confidences = convert_predicted_rows(rows)
+        values, labels, times, confidences = raw_to_pretrained(
+            seconds,
+            raw_values,
+            moving_average_window=moving_average_window,
+            normalization_range=normalization_range,
+            source_labels=source_labels,
+            source_confidences=source_confidences,
+        )
     else:
-        values, labels, times = load_pretrained_rows(rows)
+        values, labels, times, confidences = load_pretrained_rows(rows)
 
-    sequences = pretrained_to_sequences(values, labels, window_size)
+    pretrained_path = None
+    if save_pretrained_file:
+        PRETRAINED_DIR.mkdir(parents=True, exist_ok=True)
+        pretrained_path = PRETRAINED_DIR / f"{input_path.stem}_pretrained.txt"
+        save_pretrained(pretrained_path, values, labels, times, confidences)
+
+    if confidences is not None:
+        sequences = pretrained_to_sequences_with_confidence(
+            values,
+            labels,
+            confidences,
+            window_size,
+        )
+    else:
+        sequences = pretrained_to_sequences(values, labels, window_size)
+
     if not sequences:
         raise ValueError(
             "Not enough data to build model sequences. Provide a longer recording."
@@ -258,13 +355,12 @@ def process_file(
     output_path = OUTPUT_DIR / f"{input_path.stem}_model_input.txt"
     save_sequences(output_path, sequences)
 
-    pretrained_path = None
-    if save_pretrained_file:
-        PRETRAINED_DIR.mkdir(parents=True, exist_ok=True)
-        pretrained_path = PRETRAINED_DIR / f"{input_path.stem}_pretrained.txt"
-        save_pretrained(pretrained_path, values, labels, times)
+    pseudo_labeled = False
+    if confidences is not None:
+        apply_pseudo_labeling(output_path)
+        pseudo_labeled = True
 
-    return input_format, output_path, pretrained_path, len(sequences)
+    return input_format, output_path, pretrained_path, len(sequences), pseudo_labeled
 
 
 def resolve_input_files(filename: str | None) -> list[Path]:
@@ -291,7 +387,7 @@ def main():
         raise FileNotFoundError(f"No TXT or CSV files found in {DATA_DIR}")
 
     for input_path in input_files:
-        input_format, output_path, pretrained_path, sequence_count = process_file(
+        input_format, output_path, pretrained_path, sequence_count, pseudo_labeled = process_file(
             input_path=input_path,
             window_size=args.window_size,
             moving_average_window=args.moving_average,
@@ -303,6 +399,8 @@ def main():
         print(f"Saved model-ready sequences to: {output_path}")
         if pretrained_path is not None:
             print(f"Saved pretrained data to: {pretrained_path}")
+        if pseudo_labeled:
+            print("Applied pseudo labeling to remove the confidence column from sequence output.")
         print(f"Number of sequences: {sequence_count}")
         print("-")
 
