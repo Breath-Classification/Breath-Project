@@ -89,5 +89,5 @@ def personalized_tuning(model_path,train_data_txt, test_data_txt, path, layer="a
 def split_data(path): #get data from server split it into test and train data
     return
 if __name__ == "__main__":
-    personalized_tuning("path","data","data","path")
+    personalized_tuning("model_path","brp-ml-models-main/data/NewData/*.txt","brp-ml-models-main/data/pretrained/tens_sequence/tens_test.txt","brp-ml-models-main/data/NewData/layers")
     

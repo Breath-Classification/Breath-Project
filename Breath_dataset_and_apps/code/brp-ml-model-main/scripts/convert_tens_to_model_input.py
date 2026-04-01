@@ -34,24 +34,6 @@ def parse_args():
         ),
     )
     parser.add_argument(
-        "--window-size",
-        type=int,
-        default=DEFAULT_WINDOW_SIZE,
-        help="Number of signal values in one model sequence for tensometer data.",
-    )
-    parser.add_argument(
-        "--moving-average",
-        type=int,
-        default=DEFAULT_MOVING_AVERAGE,
-        help="Moving average window used for raw tensometer data.",
-    )
-    parser.add_argument(
-        "--normalization-range",
-        type=int,
-        default=DEFAULT_NORMALIZATION_RANGE,
-        help="Backward-looking normalization range used for raw tensometer data.",
-    )
-    parser.add_argument(
         "--save-pretrained",
         action="store_true",
         help="Also save the intermediate value,label,time file to data/NewData/pretrained/.",
@@ -389,9 +371,9 @@ def main():
     for input_path in input_files:
         input_format, output_path, pretrained_path, sequence_count, pseudo_labeled = process_file(
             input_path=input_path,
-            window_size=args.window_size,
-            moving_average_window=args.moving_average,
-            normalization_range=args.normalization_range,
+            window_size=DEFAULT_WINDOW_SIZE,
+            moving_average_window=DEFAULT_MOVING_AVERAGE,
+            normalization_range=DEFAULT_NORMALIZATION_RANGE,
             save_pretrained_file=args.save_pretrained,
         )
         print(f"Input file: {input_path}")
