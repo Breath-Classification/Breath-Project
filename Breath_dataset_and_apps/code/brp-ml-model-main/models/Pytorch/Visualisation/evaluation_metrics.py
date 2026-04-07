@@ -1,7 +1,7 @@
 import torch
 from main import load_model_and_predict
 from scripts.error_tolerance import acceptable_error
-
+from scripts.error_tolerance import RR_error
 
 def standard_accuracy(model_path):
     y_pred,y_true,_,_ = load_model_and_predict(model_path)
@@ -52,11 +52,14 @@ def cycle_accuracy(model_path):
     pred_cycle=0
     true_cycle=0
     while i < n_samples:
-        
+        cycle_true = []
+        cycle_pred = []
         if y_true[i] == 2:
             is_cycle = True
             start_inhale = True
             for j in range(i+1,n_samples):
+                cycle_true.append(y_true[j])
+                cycle_pred.append(y_pred[j])
                 if y_true[j] != y_pred[j]:
                     if not acceptable_error(y_pred,y_true,j,2):
                         is_cycle = False
@@ -64,6 +67,9 @@ def cycle_accuracy(model_path):
                     start_inhale = False
                 if y_true[j]==2 and start_inhale==False and is_cycle==True:
                     pred_cycle+=1
+                elif y_true[j]==2 and start_inhale==False:
+                    if RR_error(cycle_pred,cycle_true,1):
+                         pred_cycle+=1
                 if y_true[j]==2 and start_inhale==False:
                     true_cycle+=1
                     i=j+1
