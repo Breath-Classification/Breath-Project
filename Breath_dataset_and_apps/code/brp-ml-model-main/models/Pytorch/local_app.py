@@ -16,6 +16,7 @@ from Visualisation.evaluation_metrics import standard_accuracy
 from Visualisation.evaluation_metrics import with_epsilon_accuracy
 from Visualisation.evaluation_metrics import cycle_accuracy
 from Visualisation.evaluation_metrics import number_of_transitions_accuracy
+from Visualisation.statistic import epsilon_accuracy
 
 BASE_DIR = Path(__file__).resolve().parent
 SAVED_MODELS_DIR = BASE_DIR / "models" / "saved_models"
@@ -98,6 +99,25 @@ def plot_best_models_metrics(group_name, metrics_by_model):
     ax.set_ylabel("Value")
     ax.set_xticks(positions)
     ax.set_xticklabels(model_names, rotation=45, ha="right")
+    ax.legend()
+    fig.tight_layout()
+
+    return fig
+
+
+def plot_epsilon_accuracy_curves(group_name, epsilon_by_model):
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for model_name, accuracies in epsilon_by_model.items():
+        epsilons = list(range(len(accuracies)))
+        ax.plot(epsilons, accuracies, marker="o", linewidth=2, label=model_name)
+
+    ax.set_title(f"Epsilon accuracy by tolerance for {group_name}")
+    ax.set_xlabel("Epsilon")
+    ax.set_ylabel("Accuracy [%]")
+    ax.set_xticks(list(range(10)))
+    ax.set_ylim(0, 100)
+    ax.grid(True, linestyle="--", alpha=0.4)
     ax.legend()
     fig.tight_layout()
 
@@ -406,11 +426,13 @@ def accuracy():
             st.subheader(f"Group: {group_name}")
 
             metrics_by_model = {}
+            epsilon_by_model = {}
             summary_rows = []
 
             for model_name, model_info in sorted(models.items()):
                 metrics = calculate_accuracy_metrics(model_info["path"])
                 metrics_by_model[model_name] = metrics
+                epsilon_by_model[model_name] = epsilon_accuracy(str(model_info["path"]))
                 summary_rows.append(
                     {
                         "model": model_name,
@@ -421,6 +443,7 @@ def accuracy():
 
             st.dataframe(summary_rows, use_container_width=True)
             st.pyplot(plot_best_models_metrics(group_name, metrics_by_model))
+            st.pyplot(plot_epsilon_accuracy_curves(group_name, epsilon_by_model))
 
         st.session_state.accuracy_statistic = False
 
