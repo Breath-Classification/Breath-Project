@@ -17,6 +17,7 @@ from Visualisation.evaluation_metrics import with_epsilon_accuracy
 from Visualisation.evaluation_metrics import cycle_accuracy
 from Visualisation.evaluation_metrics import number_of_transitions_accuracy
 from Visualisation.statistic import epsilon_accuracy
+from Visualisation.statistic import epsilon_RR_accuracy
 
 BASE_DIR = Path(__file__).resolve().parent
 SAVED_MODELS_DIR = BASE_DIR / "models" / "saved_models"
@@ -105,17 +106,19 @@ def plot_best_models_metrics(group_name, metrics_by_model):
     return fig
 
 
-def plot_epsilon_accuracy_curves(group_name, epsilon_by_model):
+def plot_epsilon_accuracy_curves(group_name, epsilon_by_model, title="Epsilon accuracy by tolerance"):
     fig, ax = plt.subplots(figsize=(10, 6))
 
+    max_epsilon = 0
     for model_name, accuracies in epsilon_by_model.items():
         epsilons = list(range(len(accuracies)))
+        max_epsilon = max(max_epsilon, len(accuracies))
         ax.plot(epsilons, accuracies, marker="o", linewidth=2, label=model_name)
 
-    ax.set_title(f"Epsilon accuracy by tolerance for {group_name}")
+    ax.set_title(f"{title} for {group_name}")
     ax.set_xlabel("Epsilon")
     ax.set_ylabel("Accuracy [%]")
-    ax.set_xticks(list(range(10)))
+    ax.set_xticks(list(range(max_epsilon or 1)))
     ax.set_ylim(0, 100)
     ax.grid(True, linestyle="--", alpha=0.4)
     ax.legend()
@@ -427,12 +430,14 @@ def accuracy():
 
             metrics_by_model = {}
             epsilon_by_model = {}
+            epsilon_rr_by_model = {}
             summary_rows = []
 
             for model_name, model_info in sorted(models.items()):
                 metrics = calculate_accuracy_metrics(model_info["path"])
                 metrics_by_model[model_name] = metrics
                 epsilon_by_model[model_name] = epsilon_accuracy(str(model_info["path"]))
+                epsilon_rr_by_model[model_name] = epsilon_RR_accuracy(str(model_info["path"]))
                 summary_rows.append(
                     {
                         "model": model_name,
@@ -443,7 +448,8 @@ def accuracy():
 
             st.dataframe(summary_rows, use_container_width=True)
             st.pyplot(plot_best_models_metrics(group_name, metrics_by_model))
-            st.pyplot(plot_epsilon_accuracy_curves(group_name, epsilon_by_model))
+            #st.pyplot(plot_epsilon_accuracy_curves(group_name, epsilon_by_model))
+            #st.pyplot(plot_epsilon_accuracy_curves(group_name, epsilon_rr_by_model, title="Epsilon RR accuracy by tolerance"))
 
         st.session_state.accuracy_statistic = False
 
