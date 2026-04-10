@@ -59,7 +59,9 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
                       dataset_type="SequenceDataset", 
                       loos_type ="CrossEntropyLoss", optimizer_type="Adam",
                       dropout =0, num_layers=2, dim_feedforward =64, 
-                      nhead  =2, d_model=32,best_acc=0.99,lambda_con0=0,lambda_con1=0,lambda_con2=0,lambda_con3=0):
+                      nhead  =2, d_model=32,best_acc=0.99,lambda_con0=0,
+                      lambda_con1=0,lambda_con2=0,lambda_con3=0,
+                      save_path=None, save_filename=None):
    
     #logs
     wandb.init(
@@ -113,7 +115,11 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
         "optimizer_type":optimizer_type,
         "dataset_type":dataset_type
     }
-    
+    current_acc = max(results["max_test_acc"]) if results["max_test_acc"] else 0.0
+
+    if save_path and save_filename and current_acc > best_acc:
+        save_model(model, config, path=save_path, filename=save_filename)
+        return results
     if end ==True:
         save_model(model,config,path="models/saved_models/SequenceBlockDataset/Window/NoCRF",filename=f"{model_type}_{best_acc:.4f}")
     #save_model_mobile(model)
@@ -141,6 +147,7 @@ def save_model_mobile(model, filename="LSTM_BaseMobile"):
     
 def save_model(model, config, path, filename=""):
     #saving model
+    os.makedirs(path, exist_ok=True)
     if use_wandb == 'n':
         if filename=="":
             filename = input("input name of the saved model ")
