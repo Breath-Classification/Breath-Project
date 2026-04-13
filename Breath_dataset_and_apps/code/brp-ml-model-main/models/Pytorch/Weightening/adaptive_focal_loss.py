@@ -19,6 +19,7 @@ def get_gamma(p=0.2):
     '''
     Get the gamma for a given pt where the function g(p, gamma) = 1
     '''
+    
     y = ((1-p)**(1-(1-p)/(p*np.log(p)))/(p*np.log(p)))*np.log(1-p)
     gamma_complex = (1-p)/(p*np.log(p)) + lambertw(-y + 1e-12, k=-1)/np.log(1-p)
     gamma = np.real(gamma_complex) #gamma for which p_t > p results in g(p_t,gamma)<1
@@ -52,9 +53,11 @@ class FocalLossAdaptive(nn.Module):
                 if pt_sample < key:
                     gamma_list.append(gamma_dic[key])
                     break
-        return torch.tensor(gamma_list).to(self.device)
+        return torch.tensor(gamma_list).to(pt.device)
 
     def forward(self, input, target):
+        
+        target = target.to(input.device)
         if input.dim()>2:
             input = input.view(input.size(0),input.size(1),-1)  # N,C,H,W => N,C,H*W
             input = input.transpose(1,2)    # N,C,H*W => N,H*W,C
@@ -65,6 +68,7 @@ class FocalLossAdaptive(nn.Module):
         logpt = logpt.view(-1)
         pt = logpt.exp()
         gamma = self.get_gamma_list(pt)
+        
         loss = -1 * (1-pt)**gamma * logpt
         if self.size_average: return loss.mean()
         else: return loss.sum()

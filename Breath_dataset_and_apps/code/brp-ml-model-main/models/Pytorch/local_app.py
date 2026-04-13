@@ -23,7 +23,7 @@ from Visualisation.statistic import recall
 from Visualisation.statistic import f_scale
 
 BASE_DIR = Path(__file__).resolve().parent
-SAVED_MODELS_DIR = BASE_DIR / "models" / "saved_models"
+SAVED_MODELS_DIR = BASE_DIR / "models" / "saved_models/optuna/BlockDataset"
 
 st.title("ML Model Tester")
 
@@ -34,7 +34,7 @@ if "page" not in st.session_state:
 def parse_model_filename(model_path):
     match = re.match(r"(.+?)_(?:S)?(\d+\.\d+)$", model_path.stem)
     if not match:
-        return None, None
+        return model_path.stem, 0.0
     return match.group(1), float(match.group(2))
 
 
@@ -448,18 +448,19 @@ def accuracy():
                 epsilon_by_model[model_name] = epsilon_accuracy(str(model_info["path"]))
                 epsilon_rr_by_model[model_name] = epsilon_RR_accuracy(str(model_info["path"]))
                 model_path = str(model_info["path"])
-                for cls in range(0, 4):  
-                    p = precision(model_path, cls)
-                    r = recall(model_path, cls)
-                    f1 = f_scale(p, r)
+                
+                #for cls in range(0, 4):  
+                 #   p = precision(model_path, cls)
+                  #  r = recall(model_path, cls)
+                   # f1 = f_scale(p, r)
 
-                    class_metrics_rows.append({
-                        "model": model_name,
-                        "class": cls,
-                        "precision": format_ratio_metric_value(p),
-                        "recall": format_ratio_metric_value(r),
-                        "f_score": format_ratio_metric_value(f1),
-                    })
+                    #class_metrics_rows.append({
+                     #   "model": model_name,
+                      #  "class": cls,
+                       # "precision": format_ratio_metric_value(p),
+                        #"recall": format_ratio_metric_value(r),
+                        #"f_score": format_ratio_metric_value(f1),
+                #    })
                 
                 summary_rows.append(
                     {
@@ -468,11 +469,12 @@ def accuracy():
                         **{key: format_metric_value(value) for key, value in metrics.items()},
                     }
                 )
+                
 
             st.dataframe(summary_rows, use_container_width=True)
-            st.write("Precision / Recall / F-score by class")
-            st.dataframe(class_metrics_rows, use_container_width=True)
-            st.pyplot(plot_best_models_metrics(group_name, metrics_by_model))
+            #st.write("Precision / Recall / F-score by class")
+            #st.dataframe(class_metrics_rows, use_container_width=True)
+            #st.pyplot(plot_best_models_metrics(group_name, metrics_by_model))
             #st.pyplot(plot_epsilon_accuracy_curves(group_name, epsilon_by_model))
             #st.pyplot(plot_epsilon_accuracy_curves(group_name, epsilon_rr_by_model, title="Epsilon RR accuracy by tolerance"))
 

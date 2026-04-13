@@ -444,7 +444,8 @@ if __name__ == "__main__":
                       num_epchos=2,
                       dropout=0.2,
                       num_layers=2,
-                      dataset_type="SequenceBlockDataset")
+                      dataset_type="SequenceBlockDataset",
+                      loos_type="FocalLossAdaptive")
     
     
     
