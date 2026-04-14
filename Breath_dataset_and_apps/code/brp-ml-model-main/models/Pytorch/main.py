@@ -99,7 +99,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     wandb.finish()
 
     #optuna tuning 
-    #return results
+    return results
     
     
     config = {
@@ -434,18 +434,24 @@ def load_model_and_predict(model_path):
 
 if __name__ == "__main__":
     
-    train_and_predict(block_size=30,
-                      batch_size=64,
-                      target=0,
-                      hidden_units=64,
-                      output_shape=4,
-                      model_type="LSTM_MIX",
-                      learning_rate=0.001,
-                      num_epchos=2,
-                      dropout=0.2,
-                      num_layers=2,
-                      dataset_type="SequenceBlockDataset",
-                      loos_type="FocalLossAdaptive")
+    wynik = []
+    for i in range(1,40):
+    
+       results = train_and_predict(block_size=i,
+                        batch_size=128,
+                        target=0,
+                        hidden_units=64,
+                        output_shape=4,
+                        model_type="LSTM_ATTENTION",
+                        learning_rate=0.001,
+                        num_epchos=60,
+                        dropout=0.2,
+                        num_layers=1,
+                        dataset_type="BlockDataset",
+                        loos_type="CrossEntropyLoss")
+       wynik.append(max(results["max_test_acc"]))
+       print(wynik)
+    print(wynik)
     
     
     
