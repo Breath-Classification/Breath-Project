@@ -23,7 +23,7 @@ from Visualisation.statistic import recall
 from Visualisation.statistic import f_scale
 
 BASE_DIR = Path(__file__).resolve().parent
-SAVED_MODELS_DIR = BASE_DIR / "models" / "saved_models/optuna2/BlockDataset"
+SAVED_MODELS_DIR = BASE_DIR / "models" / "saved_models"
 
 st.title("ML Model Tester")
 
