@@ -32,13 +32,16 @@ class InputAdapter(nn.Module):
 
 
 class FineTuningModel(nn.Module):
-    def __init__(self, base_model: nn.Module, adapter: InputAdapter):
+    def __init__(self, base_model: nn.Module, input_adapter: nn.Module | None = None):
         super().__init__()
-        self.adapter = adapter
+        self.input_adapter = input_adapter
         self.base_model = base_model
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.base_model(self.adapter(x))
+        if self.input_adapter is not None:
+            x = self.input_adapter(x)
+
+        return self.base_model(x)
 
 
 def parse_args() -> argparse.Namespace:
@@ -63,8 +66,18 @@ def parse_args() -> argparse.Namespace:
 
 
 def parse_layers(trained_layers: str) -> list[str]:
-    layers = [layer.strip() for layer in trained_layers.split(",") if layer.strip()]
-    return layers or ["fc"]
+    layers: list[str] = []
+    for layer in [layer.strip().lower() for layer in trained_layers.split(",") if layer.strip()]:
+        if layer in {"adapter_fc", "adapter+fc", "adapter-fc"}:
+            layers.extend(["adapter", "fc"])
+        elif layer in {"adapter", "fc"}:
+            layers.append(layer)
+        elif layer in {"none", "base"}:
+            continue
+        else:
+            raise ValueError(f"Unsupported trainable layer: {layer}")
+
+    return list(dict.fromkeys(layers)) or ["fc"]
 
 
 def load_sequence_rows(path: Path) -> tuple[list[list[float]], list[int]]:
@@ -153,15 +166,23 @@ def freeze_base_model(base_model: nn.Module) -> None:
 def configure_trainable_layers(
     model: FineTuningModel,
     trained_layers: list[str],
-) -> list[nn.Parameter]:
+) -> tuple[list[nn.Parameter], dict[str, str]]:
     trainable_parameters: list[nn.Parameter] = []
-    for parameter in model.adapter.parameters():
-        parameter.requires_grad = False
+    layer_sources: dict[str, str] = {}
+
+    if model.input_adapter is not None:
+        for parameter in model.input_adapter.parameters():
+            parameter.requires_grad = False
 
     if "adapter" in trained_layers:
-        for parameter in model.adapter.parameters():
+        adapter, adapter_source = get_adapter_layer_for_training(model)
+        if adapter is None:
+            raise RuntimeError("The loaded PyTorch model does not expose an `adapter` layer to fine tune.")
+
+        for parameter in adapter.parameters():
             parameter.requires_grad = True
             trainable_parameters.append(parameter)
+        layer_sources["adapter"] = adapter_source
 
     if "fc" in trained_layers:
         fc = get_fc_layer(model.base_model)
@@ -171,11 +192,36 @@ def configure_trainable_layers(
         for parameter in fc.parameters():
             parameter.requires_grad = True
             trainable_parameters.append(parameter)
+        layer_sources["fc"] = "model"
 
     if not trainable_parameters:
         raise ValueError("No trainable layers selected. Use adapter, fc, or adapter,fc.")
 
-    return trainable_parameters
+    return trainable_parameters, layer_sources
+
+
+def get_adapter_layer(model: nn.Module) -> nn.Module | None:
+    if hasattr(model, "adapter"):
+        layer = getattr(model, "adapter")
+        if isinstance(layer, nn.Module):
+            return layer
+
+    for name, module in model.named_modules():
+        if name == "adapter" or name.endswith(".adapter"):
+            return module
+
+    return None
+
+
+def get_adapter_layer_for_training(model: FineTuningModel) -> tuple[nn.Module | None, str]:
+    adapter = get_adapter_layer(model.base_model)
+    if adapter is not None:
+        return adapter, "model"
+
+    if model.input_adapter is not None:
+        return model.input_adapter, "input_wrapper"
+
+    return None, "missing"
 
 
 def get_fc_layer(model: nn.Module) -> nn.Module | None:
@@ -247,13 +293,19 @@ def save_layer_artifacts(
     trained_layers: list[str],
     layers_dir: Path,
     run_id: str,
-) -> dict[str, str]:
+) -> tuple[dict[str, str], dict[str, str]]:
     layer_files: dict[str, str] = {}
+    layer_sources: dict[str, str] = {}
 
     if "adapter" in trained_layers:
+        adapter, adapter_source = get_adapter_layer_for_training(model)
+        if adapter is None:
+            raise RuntimeError("The loaded PyTorch model does not expose an `adapter` layer to export.")
+
         adapter_path = layers_dir / f"{run_id}_adapter.pt"
-        torch.save(model.adapter.state_dict(), adapter_path)
+        torch.save(adapter.state_dict(), adapter_path)
         layer_files["adapter"] = adapter_path.name
+        layer_sources["adapter"] = adapter_source
 
     if "fc" in trained_layers:
         fc = get_fc_layer(model.base_model)
@@ -262,8 +314,9 @@ def save_layer_artifacts(
         fc_path = layers_dir / f"{run_id}_fc.pt"
         torch.save(fc.state_dict(), fc_path)
         layer_files["fc"] = fc_path.name
+        layer_sources["fc"] = "model"
 
-    return layer_files
+    return layer_files, layer_sources
 
 
 def write_json(path: Path, payload: dict) -> None:
@@ -284,8 +337,10 @@ def main() -> None:
     base_model = load_base_model(model_path, device)
     freeze_base_model(base_model)
 
-    model = FineTuningModel(base_model=base_model, adapter=InputAdapter(feature_count))
-    trainable_parameters = configure_trainable_layers(model, trained_layers)
+    has_model_adapter = get_adapter_layer(base_model) is not None
+    input_adapter = None if has_model_adapter or "adapter" not in trained_layers else InputAdapter(feature_count)
+    model = FineTuningModel(base_model=base_model, input_adapter=input_adapter)
+    trainable_parameters, trainable_layer_sources = configure_trainable_layers(model, trained_layers)
     training_metrics = train(
         model,
         trainable_parameters,
@@ -296,10 +351,10 @@ def main() -> None:
         learning_rate=args.learning_rate,
         device=device,
     )
-    layer_files = save_layer_artifacts(model, trained_layers, args.layers_dir, run_id)
+    layer_files, artifact_layer_sources = save_layer_artifacts(model, trained_layers, args.layers_dir, run_id)
 
     manifest = {
-        "format": "breathsense.fine_tuning_manifest.v2",
+        "format": "breathsense.fine_tuning_manifest.v3",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "run_id": run_id,
         "model_name": args.model_name,
@@ -312,6 +367,8 @@ def main() -> None:
         "block_size": args.block_size,
         "feature_count": int(feature_count),
         "device": str(device),
+        "trainable_layer_sources": trainable_layer_sources,
+        "artifact_layer_sources": artifact_layer_sources,
         "training": training_metrics,
         "layer_files": layer_files,
         "ready_for_download": bool(layer_files),
