@@ -25,10 +25,14 @@ class LSTM_ATTENTION(nn.Module):
             nn.Conv1d(in_channels=input_shape, out_channels=32, kernel_size=3, padding=1), # out channels is hiperparameter
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=1)      
-            
-               
         )
-       
+
+        self.adapter = nn.Sequential(
+            nn.Linear(hidden_units, hidden_units),
+            nn.ReLU(),
+            nn.Linear(hidden_units, hidden_units),
+        )
+
         
         self.lstm = nn.LSTM(
             input_size=32,
@@ -66,7 +70,7 @@ class LSTM_ATTENTION(nn.Module):
         x = self.attention(query, key, value) #Attention
         
         x = x.squeeze(1)
-        
+        x = x + self.adapter(x) # adapter specialized for a person
 
         x = self.fc(x)
         return x
