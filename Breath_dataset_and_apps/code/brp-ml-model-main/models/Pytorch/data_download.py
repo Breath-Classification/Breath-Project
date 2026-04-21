@@ -59,11 +59,20 @@ class BlockDataset(Dataset): #Sliding window
         X = data[:, :-1]
         y = data[:, -1]
 
-        
         blocks_X, blocks_y = [], []  #Create blocks
-        for i in range(len(X) - block_size + 1):
-            blocks_X.append(X[i:i + block_size])
-            blocks_y.append(y[i + block_size - 1]) 
+        if len(X) == 0:
+            raise ValueError(f"No rows found in dataset file: {filename}")
+
+        if len(X) < block_size:
+            padding_count = block_size - len(X)
+            padding_X = np.repeat(X[:1], padding_count, axis=0)
+            padded_X = np.concatenate([padding_X, X], axis=0)
+            blocks_X.append(padded_X)
+            blocks_y.append(y[-1])
+        else:
+            for i in range(len(X) - block_size + 1):
+                blocks_X.append(X[i:i + block_size])
+                blocks_y.append(y[i + block_size - 1]) 
 
         self.X = np.array(blocks_X)  
         self.y = np.array(blocks_y)

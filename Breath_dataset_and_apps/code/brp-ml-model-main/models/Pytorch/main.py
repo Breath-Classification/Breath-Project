@@ -22,6 +22,7 @@ import Engines.engine
 import Engines.engine_CRF
 import Engines.engine_without_epsilon
 #libraries
+import torch.nn as nn
 import torch
 import wandb 
 from enum import Enum
@@ -97,7 +98,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
         results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, best_acc,lambda_con0,lambda_con1,lambda_con2,lambda_con3) #stop i set 
     
     wandb.finish()
-
+    save_model_mobile(model)
     #optuna tuning 
     return results
     
@@ -129,7 +130,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
 
     all_preds, all_trues, all_features,_ = evaluate_model(model,test,dataset_type)
     return all_preds, all_trues, all_features
-def save_model_mobile(model, filename="LSTM_BaseMobile"):
+def save_model_mobile(model, filename="LSTMBASE_tens"):
     # Przełącz model w tryb ewaluacji
     model.eval()
     
@@ -490,25 +491,20 @@ def load_model(
 
 if __name__ == "__main__":
     
-    wynik = []
-    for i in range(1,40):
-    
-       results = train_and_predict(block_size=i,
+  
+    results = train_and_predict(block_size=30,
                         batch_size=128,
                         target=0,
                         hidden_units=64,
                         output_shape=4,
                         model_type="LSTM_ATTENTION",
                         learning_rate=0.001,
-                        num_epchos=60,
+                        num_epchos=2,
                         dropout=0.2,
                         num_layers=1,
                         dataset_type="BlockDataset",
                         loos_type="CrossEntropyLoss")
-       wynik.append(max(results["max_test_acc"]))
-       print(wynik)
-    print(wynik)
-    
+   
     
     
    

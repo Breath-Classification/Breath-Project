@@ -8,15 +8,19 @@ from pathlib import Path
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, TensorDataset
+from data_loader import create_dataloaders
 
 
-DEFAULT_SEQUENCE_FILE = Path("data/NewData/sequence/concatenated.txt")
+DEFAULT_TRAIN_DATA_FILE = Path("../../data/pretrained/tens_sequence/tens_concatenated.txt")
+DEFAULT_TEST_DATA_FILE = Path("../../data/pretrained/tens_sequence/tens_test.txt")
 DEFAULT_LAYERS_DIR = Path("data/NewData/layers")
 DEFAULT_BLOCK_SIZE = 30
 DEFAULT_BATCH_SIZE = 16
 DEFAULT_EPOCHS = 8
 DEFAULT_LEARNING_RATE = 0.001
+DEFAULT_DATASET_TYPE = "BlockDataset"
+DEFAULT_TARGET = 0
+DEFAULT_NUM_WORKERS = 4
 
 
 class InputAdapter(nn.Module):
@@ -51,7 +55,12 @@ def parse_args() -> argparse.Namespace:
             "The base model is frozen; only adapter and/or fc parameters are updated."
         )
     )
-    parser.add_argument("--sequence-file", default=DEFAULT_SEQUENCE_FILE, type=Path)
+    parser.add_argument("--sequence-file", default=None, type=Path, help="Optional fallback: use one sequence file for both train and test.")
+    parser.add_argument("--train-data-txt", default=DEFAULT_TRAIN_DATA_FILE, type=Path)
+    parser.add_argument("--test-data-txt", default=DEFAULT_TEST_DATA_FILE, type=Path)
+    parser.add_argument("--dataset-type", default=DEFAULT_DATASET_TYPE)
+    parser.add_argument("--target", default=DEFAULT_TARGET, type=int)
+    parser.add_argument("--num-workers", default=DEFAULT_NUM_WORKERS, type=int)
     parser.add_argument("--layers-dir", default=DEFAULT_LAYERS_DIR, type=Path)
     parser.add_argument("--model-name", default="LSTMBASE_tens")
     parser.add_argument("--runtime", default="pytorch")
@@ -80,49 +89,32 @@ def parse_layers(trained_layers: str) -> list[str]:
     return list(dict.fromkeys(layers)) or ["fc"]
 
 
-def load_sequence_rows(path: Path) -> tuple[list[list[float]], list[int]]:
-    features: list[list[float]] = []
-    labels: list[int] = []
+def resolve_data_files(args: argparse.Namespace) -> tuple[Path, Path]:
+    if args.sequence_file is not None:
+        return args.sequence_file, args.sequence_file
 
-    if not path.exists():
-        return features, labels
-
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-
-        values = [float(value) for value in line.split(",")]
-        if len(values) < 2:
-            continue
-
-        features.append(values[:-1])
-        labels.append(int(values[-1]))
-
-    return features, labels
+    return args.train_data_txt, args.test_data_txt
 
 
-def build_training_tensors(
-    features: list[list[float]],
-    labels: list[int],
+def load_dataloaders(
+    train_data_txt: Path,
+    test_data_txt: Path,
     block_size: int,
-) -> tuple[torch.Tensor, torch.Tensor]:
-    if not features:
-        raise ValueError("No sequence rows available for fine tuning.")
-
-    blocks: list[list[list[float]]] = []
-    block_labels: list[int] = []
-    if len(features) < block_size:
-        padding = [features[0] for _ in range(block_size - len(features))]
-        blocks.append([*padding, *features])
-        block_labels.append(labels[-1])
-    else:
-        for index in range(block_size, len(features) + 1):
-            blocks.append(features[index - block_size:index])
-            block_labels.append(labels[index - 1])
-
-    x = torch.tensor(blocks, dtype=torch.float32)
-    y = torch.tensor(block_labels, dtype=torch.long)
-    return x, y
+    batch_size: int,
+    dataset_type: str,
+    target: int,
+    num_workers: int,
+) -> tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
+    return create_dataloaders(
+        transform=None,
+        batch_size=batch_size,
+        block_size=block_size,
+        target=target,
+        dataset_type=dataset_type,
+        num_workers=num_workers,
+        train_data_txt=str(train_data_txt),
+        test_data_txt=str(test_data_txt),
+    )
 
 
 def resolve_model_path(model_name: str, explicit_model_file: Path | None) -> Path:
@@ -240,16 +232,14 @@ def get_fc_layer(model: nn.Module) -> nn.Module | None:
 def train(
     model: FineTuningModel,
     trainable_parameters: list[nn.Parameter],
-    x: torch.Tensor,
-    y: torch.Tensor,
+    train_dataloader,
+    test_dataloader,
     *,
     batch_size: int,
     epochs: int,
     learning_rate: float,
     device: torch.device,
 ) -> dict[str, float | int | list[float]]:
-    dataset = TensorDataset(x, y)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     optimizer = torch.optim.Adam(trainable_parameters, lr=learning_rate)
     loss_fn = nn.CrossEntropyLoss()
     losses: list[float] = []
@@ -258,7 +248,7 @@ def train(
     for epoch in range(epochs):
         epoch_loss = 0.0
         model.train()
-        for batch_x, batch_y in dataloader:
+        for batch_x, batch_y in train_dataloader:
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
             optimizer.zero_grad()
@@ -268,24 +258,35 @@ def train(
             optimizer.step()
             epoch_loss += loss.item() * batch_x.size(0)
 
-        losses.append(epoch_loss / len(dataset))
+        losses.append(epoch_loss / len(train_dataloader.dataset))
 
-    accuracy = evaluate_accuracy(model, x.to(device), y.to(device))
+    accuracy = evaluate_accuracy(model, test_dataloader, device)
     return {
         "epochs": epochs,
         "batch_size": batch_size,
         "learning_rate": learning_rate,
         "final_loss": losses[-1] if losses else 0.0,
         "loss_history": [round(loss, 6) for loss in losses],
-        "training_accuracy": accuracy,
+        "test_accuracy": accuracy,
     }
 
 
-def evaluate_accuracy(model: FineTuningModel, x: torch.Tensor, y: torch.Tensor) -> float:
+def evaluate_accuracy(model: FineTuningModel, dataloader, device: torch.device) -> float:
     model.eval()
     with torch.no_grad():
-        predictions = torch.argmax(model(x), dim=1)
-        return float((predictions == y).float().mean().item())
+        total_correct = 0
+        total_samples = 0
+        for batch_x, batch_y in dataloader:
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
+            predictions = torch.argmax(model(batch_x), dim=1)
+            total_correct += (predictions == batch_y).sum().item()
+            total_samples += batch_y.numel()
+
+        if total_samples == 0:
+            return 0.0
+
+        return float(total_correct / total_samples)
 
 
 def save_layer_artifacts(
@@ -330,9 +331,18 @@ def main() -> None:
     run_id = args.run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    features, labels = load_sequence_rows(args.sequence_file)
-    x, y = build_training_tensors(features, labels, args.block_size)
-    feature_count = x.shape[-1]
+    train_data_txt, test_data_txt = resolve_data_files(args)
+    train_dataloader, test_dataloader = load_dataloaders(
+        train_data_txt=train_data_txt,
+        test_data_txt=test_data_txt,
+        block_size=args.block_size,
+        batch_size=args.batch_size,
+        dataset_type=args.dataset_type,
+        target=args.target,
+        num_workers=args.num_workers,
+    )
+    first_batch_x, _ = next(iter(train_dataloader))
+    feature_count = first_batch_x.shape[-1]
     model_path = resolve_model_path(args.model_name, args.model_file)
     base_model = load_base_model(model_path, device)
     freeze_base_model(base_model)
@@ -344,8 +354,8 @@ def main() -> None:
     training_metrics = train(
         model,
         trainable_parameters,
-        x,
-        y,
+        train_dataloader,
+        test_dataloader,
         batch_size=args.batch_size,
         epochs=args.epochs,
         learning_rate=args.learning_rate,
@@ -362,8 +372,9 @@ def main() -> None:
         "base_model_file": str(model_path),
         "trained_layers": trained_layers,
         "source_sequence_file": str(args.sequence_file),
-        "sequence_rows": len(features),
-        "training_samples": int(x.shape[0]),
+        "train_data_txt": str(train_data_txt),
+        "test_data_txt": str(test_data_txt),
+        "training_samples": len(train_dataloader.dataset),
         "block_size": args.block_size,
         "feature_count": int(feature_count),
         "device": str(device),

@@ -1,0 +1,49 @@
+{
+  "format": "breathsense.fine_tuning_manifest.v3",
+  "created_at": "2026-04-21T17:32:59.441518+00:00",
+  "run_id": "20260421T173255570973Z",
+  "model_name": "LSTMBASE_tens",
+  "runtime": "pytorch",
+  "base_model_file": "models/mobile_models/LSTMBASE_tens.pt",
+  "trained_layers": [
+    "adapter",
+    "fc"
+  ],
+  "source_sequence_file": "../../scripts/data/NewData/sequence/concatenated.txt",
+  "train_data_txt": "../../scripts/data/NewData/sequence/concatenated.txt",
+  "test_data_txt": "../../scripts/data/NewData/sequence/concatenated.txt",
+  "training_samples": 1,
+  "block_size": 30,
+  "feature_count": 6,
+  "device": "cuda",
+  "trainable_layer_sources": {
+    "adapter": "model",
+    "fc": "model"
+  },
+  "artifact_layer_sources": {
+    "adapter": "model",
+    "fc": "model"
+  },
+  "training": {
+    "epochs": 8,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "final_loss": 0.19096112251281738,
+    "loss_history": [
+      0.41029,
+      0.37437,
+      0.339683,
+      0.30641,
+      0.274743,
+      0.244855,
+      0.216891,
+      0.190961
+    ],
+    "test_accuracy": 1.0
+  },
+  "layer_files": {
+    "adapter": "20260421T173255570973Z_adapter.pt",
+    "fc": "20260421T173255570973Z_fc.pt"
+  },
+  "ready_for_download": true
+}
