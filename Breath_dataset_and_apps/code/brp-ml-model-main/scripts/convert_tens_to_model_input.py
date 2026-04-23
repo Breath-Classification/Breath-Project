@@ -6,6 +6,11 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    from scripts.pseudo_labeling import decide_pseudo_label
+except ModuleNotFoundError:
+    from pseudo_labeling import decide_pseudo_label
+
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT_DIR = Path("data/NewData")
@@ -256,6 +261,7 @@ def raw_to_pretrained(
 def build_sequences(
     values: list[float],
     labels: list[int],
+    times: list[float] | None,
     confidences: list[float] | None,
     *,
     window_size: int,
@@ -264,12 +270,21 @@ def build_sequences(
     sequences: list[list[float]] = []
     for index in range(window_size, len(values)):
         position = index - window_size + window_size // 2
-        if confidences is not None and confidences[position] < confidence_threshold:
+        label = labels[position]
+        time_value = times[position] if times is not None else None
+        decision = decide_pseudo_label(
+            confidences,
+            position,
+            confidence_threshold,
+            label=label,
+            time=time_value,
+        )
+        if decision == "drop":
             continue
 
         window = values[index - window_size:index]
         amplitude = abs(max(window) - min(window))
-        model_label = labels[position] + 1
+        model_label = label + 1
         sequences.append([*window, amplitude, float(model_label)])
     return sequences
 
@@ -356,6 +371,7 @@ def process_file(
     sequences = build_sequences(
         values,
         labels,
+        aligned_times,
         confidences,
         window_size=window_size,
         confidence_threshold=confidence_threshold,

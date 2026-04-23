@@ -130,7 +130,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
 
     all_preds, all_trues, all_features,_ = evaluate_model(model,test,dataset_type)
     return all_preds, all_trues, all_features
-def save_model_mobile(model, filename="LSTMBASE_tens"):
+def save_model_mobile(model, filename="LSTMBASE_tens2"):
     # Przełącz model w tryb ewaluacji
     model.eval()
     
@@ -502,7 +502,7 @@ if __name__ == "__main__":
                         num_epchos=2,
                         dropout=0.2,
                         num_layers=1,
-                        dataset_type="BlockDataset",
+                        dataset_type="SequenceDataset",
                         loos_type="CrossEntropyLoss")
    
     
