@@ -6,24 +6,29 @@ from typing import Literal
 
 PseudoLabelDecision = Literal["keep", "drop", "relabeled"]
 
+def threshold_per_user():
+    return 
 
-def resolve_txt_path(path: str | Path) -> Path:
-    file_path = Path(path)
-    if file_path.suffix != ".txt":
-        file_path = file_path.with_suffix(".txt")
-    return file_path
+def breath_stability():
+    return
 
+def label_flip_rate():
+    return
 
-def remove_confidence(lines: list[str]) -> list[str]:
-    new_lines: list[str] = []
-    for line in lines:
-        parts = [part.strip() for part in line.strip().split(",") if part.strip() != ""]
-        if not parts:
-            continue
-        if len(parts) > 1:
-            parts = parts[:-1]
-        new_lines.append(",".join(parts) + "\n")
-    return new_lines
+def average_length():
+    return
+
+def majority():
+    return
+
+def isloated():
+    return
+
+def slope():
+    return
+
+def confidence():
+    return
 
 
 def decide_pseudo_label(
@@ -49,8 +54,22 @@ def should_keep_pseudo_labeled(
 ) -> bool:
     return decide_pseudo_label(confidences, position, confidence_threshold, label=label, time=time) != "drop"
 
-
-def label(path: str | Path) -> None:
-    file_path = resolve_txt_path(path)
-    lines = file_path.read_text(encoding="utf-8").splitlines(keepends=True)
-    file_path.write_text("".join(remove_confidence(lines)), encoding="utf-8")
+def relabel (
+    confidences: list[float] | None,
+    position: int,
+    confidence_threshold: float,
+    label: int | None = None,
+    time: float | None = None,
+    strategy: str = "None",
+)-> list[int]:
+    
+    if strategy == "majority":
+        return majority()
+    elif strategy ==  "isolated":
+        return isloated()
+    elif strategy == "slope":
+        return slope()
+    elif strategy == "confidence":
+        return confidence()
+    
+    
