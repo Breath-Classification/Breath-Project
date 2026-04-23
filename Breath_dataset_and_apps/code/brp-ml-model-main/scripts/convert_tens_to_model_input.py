@@ -271,19 +271,23 @@ def build_sequences(
     for index in range(window_size, len(values)):
         position = index - window_size + window_size // 2
         label = labels[position]
-        time_value = times[position] if times is not None else None
+        window = values[index - window_size:index]
+        amplitude = abs(max(window) - min(window))
+        
         decision = decide_pseudo_label(
             confidences,
             position,
             confidence_threshold,
-            label=label,
-            time=time_value,
+            labels,
+            times,
+            window_size,
+            amplitude,
+            values,
+            
         )
         if decision == "drop":
             continue
 
-        window = values[index - window_size:index]
-        amplitude = abs(max(window) - min(window))
         model_label = label + 1
         sequences.append([*window, amplitude, float(model_label)])
     return sequences
