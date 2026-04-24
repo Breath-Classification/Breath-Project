@@ -274,19 +274,16 @@ def build_sequences(
         window = values[index - window_size:index]
         amplitude = abs(max(window) - min(window))
         
-        decision = decide_pseudo_label(
-            confidences,
-            position,
-            confidence_threshold,
-            labels,
-            times,
-            window_size,
-            amplitude,
-            values,
-            
-        )
-        if decision == "drop":
+        decision = decide_pseudo_label(confidences,position,confidence_threshold,
+                                       labels,times,window_size,amplitude,values)
+        if decision == "keep":
+            pass
+        elif decision == "drop":
             continue
+        elif isinstance(decision, tuple):
+            tag, value = decision
+            if tag == "relabeled":
+                label = value
 
         model_label = label + 1
         sequences.append([*window, amplitude, float(model_label)])
