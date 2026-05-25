@@ -1,7 +1,17 @@
 import torch
 from torch.utils.data import Dataset
 import numpy as np
-from keras.src.utils import to_categorical
+
+
+def to_categorical(y, num_classes=None, dtype="float32"):
+    labels = np.array(y, dtype="int64").ravel()
+    if num_classes is None:
+        num_classes = int(labels.max()) + 1 if labels.size else 0
+
+    categorical = np.zeros((labels.shape[0], num_classes), dtype=dtype)
+    if labels.size:
+        categorical[np.arange(labels.shape[0]), labels] = 1
+    return categorical
 
 '''
  The purpose of this code is to read data from a file containing accelerometer/tensometr measurements
