@@ -65,6 +65,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-name", default="LSTMBASE_tens")
     parser.add_argument("--runtime", default="pytorch")
     parser.add_argument("--trained-layers", default="fc", help="Comma-separated layer list, e.g. fc or adapter,fc.")
+    parser.add_argument(
+        "--export-artifacts",
+        choices=["layers", "full_model", "both"],
+        default="layers",
+        help="Which fine-tuned artifacts to export after training.",
+    )
     parser.add_argument("--run-id", default=None)
     parser.add_argument("--model-file", default=None, type=Path)
     parser.add_argument("--block-size", default=DEFAULT_BLOCK_SIZE, type=int)
@@ -320,6 +326,32 @@ def save_layer_artifacts(
     return layer_files, layer_sources
 
 
+def save_full_model_artifact(
+    model: FineTuningModel,
+    layers_dir: Path,
+    run_id: str,
+    example_input: torch.Tensor,
+) -> str:
+    model_path = layers_dir / f"{run_id}_model.pt"
+    model.eval()
+    model.cpu()
+
+    if model.input_adapter is None:
+        model.base_model.eval()
+        torch.jit.save(model.base_model, str(model_path))
+        return model_path.name
+
+    example_input = example_input[:1].cpu()
+    with torch.no_grad():
+        try:
+            scripted_model = torch.jit.script(model)
+        except Exception:
+            scripted_model = torch.jit.trace(model, example_input)
+
+    scripted_model.save(str(model_path))
+    return model_path.name
+
+
 def write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
@@ -361,7 +393,14 @@ def main() -> None:
         learning_rate=args.learning_rate,
         device=device,
     )
-    layer_files, artifact_layer_sources = save_layer_artifacts(model, trained_layers, args.layers_dir, run_id)
+    layer_files: dict[str, str] = {}
+    artifact_layer_sources: dict[str, str] = {}
+    if args.export_artifacts in {"layers", "both"}:
+        layer_files, artifact_layer_sources = save_layer_artifacts(model, trained_layers, args.layers_dir, run_id)
+
+    model_file = None
+    if args.export_artifacts in {"full_model", "both"}:
+        model_file = save_full_model_artifact(model, args.layers_dir, run_id, first_batch_x)
 
     manifest = {
         "format": "breathsense.fine_tuning_manifest.v3",
@@ -378,11 +417,13 @@ def main() -> None:
         "block_size": args.block_size,
         "feature_count": int(feature_count),
         "device": str(device),
+        "export_artifacts": args.export_artifacts,
         "trainable_layer_sources": trainable_layer_sources,
         "artifact_layer_sources": artifact_layer_sources,
         "training": training_metrics,
         "layer_files": layer_files,
-        "ready_for_download": bool(layer_files),
+        "model_file": model_file,
+        "ready_for_download": bool(layer_files or model_file),
     }
     manifest_path = args.layers_dir / f"{run_id}_manifest.json"
     latest_manifest_path = args.layers_dir / "latest_manifest.json"
