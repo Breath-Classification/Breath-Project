@@ -11,9 +11,10 @@ from torch import nn
 from data_loader import create_dataloaders
 
 
-DEFAULT_TRAIN_DATA_FILE = Path("../../data/pretrained/tens_sequence/tens_concatenated.txt")
-DEFAULT_TEST_DATA_FILE = Path("../../data/pretrained/tens_sequence/tens_test.txt")
-DEFAULT_LAYERS_DIR = Path("data/NewData/layers")
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+DEFAULT_TRAIN_DATA_FILE = PROJECT_DIR / "data" / "pretrained" / "tens_sequence" / "tens_concatenated.txt"
+DEFAULT_TEST_DATA_FILE = PROJECT_DIR / "data" / "pretrained" / "tens_sequence" / "tens_test.txt"
+DEFAULT_LAYERS_DIR = PROJECT_DIR / "data" / "NewData" / "layers"
 DEFAULT_BLOCK_SIZE = 30
 DEFAULT_BATCH_SIZE = 16
 DEFAULT_EPOCHS = 8

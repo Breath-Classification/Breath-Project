@@ -1,5 +1,6 @@
 from multiprocessing import Process, Queue, freeze_support
 from tkinter import Button, Frame, Tk
+from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -9,8 +10,9 @@ from matplotlib.widgets import SpanSelector
 matplotlib.use("TkAgg")
 
 # Load data from txt file
+PROJECT_DIR = Path(__file__).resolve().parents[1]
 FILENAME = "julia"
-tens_file_path = f"data/NewData/raw/test_{FILENAME}.txt"
+tens_file_path = PROJECT_DIR / "data" / "NewData" / "raw" / f"test_{FILENAME}.txt"
 #acc_file_path = f"../data/pretrained/acc/acc_{FILENAME}.txt"
 tens_data = np.loadtxt(tens_file_path, delimiter=",")
 #acc_data = np.loadtxt(acc_file_path, delimiter=",")

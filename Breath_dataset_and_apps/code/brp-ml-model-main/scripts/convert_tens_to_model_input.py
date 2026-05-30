@@ -13,7 +13,7 @@ except ModuleNotFoundError:
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT_DIR = Path("data/NewData")
+DEFAULT_INPUT_DIR = PROJECT_DIR / "data" / "NewData"
 DEFAULT_SEQUENCE_DIR = DEFAULT_INPUT_DIR / "sequence"
 DEFAULT_PRETRAINED_DIR = DEFAULT_INPUT_DIR / "pretrained"
 DEFAULT_CONCATENATED_NAME = "concatenated.txt"

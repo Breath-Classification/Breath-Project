@@ -1,11 +1,13 @@
 import os
+from pathlib import Path
 from scripts.load_data import load_tagged_data, save_sequences_to_concatenated
 
 # ==============================
 # KONFIGURACJA
 # ==============================
-INPUT_FOLDER = "data/NewData"        # folder z plikami txt
-SEQUENCE_FOLDER = os.path.join(INPUT_FOLDER, "sequence")  # folder do sekwencji
+PROJECT_DIR = Path(__file__).resolve().parents[1]
+INPUT_FOLDER = PROJECT_DIR / "data" / "NewData"        # folder z plikami txt
+SEQUENCE_FOLDER = INPUT_FOLDER / "sequence"  # folder do sekwencji
 WINDOW_SIZE = 5                       # tensometr = 5, akcelerometr = 11
 
 # Utwórz folder sequence jeśli nie istnieje
@@ -40,8 +42,8 @@ def save_sequences(
 
 
 for txt_file in txt_files:
-    input_file = os.path.join(INPUT_FOLDER, txt_file)
-    output_file = os.path.join(SEQUENCE_FOLDER, txt_file)
+    input_file = INPUT_FOLDER / txt_file
+    output_file = SEQUENCE_FOLDER / txt_file
     
     # Wczytaj i utwórz sekwencje
     save_sequences(
@@ -55,7 +57,7 @@ for txt_file in txt_files:
 # ==============================
 # Tworzenie jednego pliku concatenated
 # ==============================
-concatenated_file = os.path.join(SEQUENCE_FOLDER, "concatenated.txt")
+concatenated_file = SEQUENCE_FOLDER / "concatenated.txt"
 
 # Czyść plik concatenated
 with open(concatenated_file, "w"):
@@ -64,7 +66,7 @@ with open(concatenated_file, "w"):
 for seq_file in os.listdir(SEQUENCE_FOLDER):
     if seq_file.endswith(".txt") and seq_file != "concatenated.txt":
         save_sequences_to_concatenated(
-            file_to_retrieve_sequences=os.path.join(SEQUENCE_FOLDER, seq_file),
+            file_to_retrieve_sequences=SEQUENCE_FOLDER / seq_file,
             file_to_save=concatenated_file
         )
 
