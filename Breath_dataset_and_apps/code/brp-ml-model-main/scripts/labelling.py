@@ -1,5 +1,6 @@
 from multiprocessing import Process, Queue, freeze_support
 from tkinter import Button, Frame, Tk
+import argparse
 from pathlib import Path
 
 import matplotlib
@@ -10,9 +11,35 @@ from matplotlib.widgets import SpanSelector
 matplotlib.use("TkAgg")
 
 # Load data from txt file
-PROJECT_DIR = Path(__file__).resolve().parents[1]
-FILENAME = "julia"
-tens_file_path = PROJECT_DIR / "data" / "NewData" / "raw" / f"test_{FILENAME}.txt"
+def find_project_dir() -> Path:
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "data").is_dir() and (parent / "models").is_dir() and (parent / "scripts").is_dir():
+            return parent
+    return Path(__file__).resolve().parents[1]
+
+
+PROJECT_DIR = find_project_dir()
+NEW_DATA_DIR = PROJECT_DIR / "data" / "NewData"
+DEFAULT_TENS_FILE = NEW_DATA_DIR / "raw" / "test_julia.txt"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Manually relabel BreathSense tensometer data.")
+    parser.add_argument(
+        "tens_file",
+        nargs="?",
+        default=DEFAULT_TENS_FILE,
+        type=Path,
+        help="Path to a value,label,time file. Relative paths are resolved from brp-ml-model-main.",
+    )
+    return parser.parse_args()
+
+
+args = parse_args()
+tens_file_path = args.tens_file if args.tens_file.is_absolute() else PROJECT_DIR / args.tens_file
+if not tens_file_path.exists():
+    raise FileNotFoundError(f"Labeling input file does not exist: {tens_file_path}")
+
 #acc_file_path = f"../data/pretrained/acc/acc_{FILENAME}.txt"
 tens_data = np.loadtxt(tens_file_path, delimiter=",")
 #acc_data = np.loadtxt(acc_file_path, delimiter=",")
