@@ -170,7 +170,7 @@ def cut(confidences: list[float] | None,
     confidence_threshold: float,):
     if confidences[position] < confidence_threshold:
         return "drop"
-    return "None"
+    return "keep"
 
 #~Labeling 
 
@@ -214,9 +214,17 @@ def decide_pseudo_label(
 ) -> PseudoLabelDecision:
     if confidences is None:
         return "keep"
-    else:
-        relabel(confidences,position,confidence_threshold,
-                labels,times,window_size,amplitude,values,strategy="physical")
+    return relabel(
+        confidences,
+        position,
+        confidence_threshold,
+        labels,
+        times,
+        window_size,
+        amplitude,
+        values,
+        strategy="physical",
+    )
 #~Main Strategy
 
 
