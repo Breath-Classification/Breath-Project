@@ -102,7 +102,7 @@ def main():
     
     args = parse_args()
     
-    test_loader = load_dataloaders(args.labelled_file)
+    _,test_loader = load_dataloaders(args.labelled_file)
     
     base_model = load_model(args.base_model)
     fine_model = load_model(args.fine_tuned_model)

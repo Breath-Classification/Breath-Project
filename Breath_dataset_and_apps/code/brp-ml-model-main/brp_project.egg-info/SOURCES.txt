@@ -22,6 +22,9 @@ models/Pytorch/Weightening/focal_loss.py
 scripts/HMM.py
 scripts/__init__.py
 scripts/convert_tens_to_model_input.py
+scripts/cut_control_data.py
 scripts/error_tolerance.py
+scripts/evaluate_fine_tuning.py
+scripts/evaluate_pseudo_labelling.py
 scripts/labelling.py
 scripts/pseudo_labeling.py

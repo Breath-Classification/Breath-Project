@@ -51,6 +51,15 @@ def parse_args() -> argparse.Namespace:
         type=float,
         help="Keep pseudo-labelled sequences whose center confidence is greater than or equal to this value.",
     )
+    parser.add_argument(
+        "--pseudo-labelling",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "Use prediction/confidence columns from app exports when available. "
+            "Pass --no-pseudo-labelling to ignore them and treat the file as raw time,value data."
+        ),
+    )
     parser.add_argument("--save-pretrained", action="store_true")
     parser.add_argument("--concatenated-name", default=DEFAULT_CONCATENATED_NAME)
     return parser.parse_args()
@@ -338,6 +347,7 @@ def process_file(
     moving_average_window: int,
     normalization_range: int,
     confidence_threshold: float,
+    pseudo_labelling: bool,
     save_pretrained_file: bool,
 ) -> dict:
     rows = read_rows(input_path)
@@ -351,7 +361,7 @@ def process_file(
             moving_average_window=moving_average_window,
             normalization_range=normalization_range,
         )
-    elif input_format == RAW_TIME_VALUE_PREDICTION_CONFIDENCE:
+    elif input_format == RAW_TIME_VALUE_PREDICTION_CONFIDENCE and pseudo_labelling:
         times, raw_values, source_labels, source_confidences = convert_predicted_rows(rows)
         values, labels, aligned_times, confidences = raw_to_pretrained(
             times,
@@ -360,6 +370,14 @@ def process_file(
             normalization_range=normalization_range,
             source_labels=source_labels,
             source_confidences=source_confidences,
+        )
+    elif input_format == RAW_TIME_VALUE_PREDICTION_CONFIDENCE:
+        times, raw_values, _, _ = convert_predicted_rows(rows)
+        values, labels, aligned_times, confidences = raw_to_pretrained(
+            times,
+            raw_values,
+            moving_average_window=moving_average_window,
+            normalization_range=normalization_range,
         )
     else:
         values, labels, aligned_times, confidences = load_pretrained_rows(rows)
@@ -391,7 +409,7 @@ def process_file(
         "input_rows": len(rows),
         "pretrained_rows": len(values),
         "sequence_rows": len(sequences),
-        "pseudo_labeled": confidences is not None,
+        "pseudo_labeled": confidences is not None and pseudo_labelling,
     }
 
 
@@ -427,6 +445,7 @@ def main() -> None:
             moving_average_window=args.moving_average_window,
             normalization_range=args.normalization_range,
             confidence_threshold=args.confidence_threshold,
+            pseudo_labelling=args.pseudo_labelling,
             save_pretrained_file=args.save_pretrained,
         )
         for input_file in input_files
@@ -441,6 +460,7 @@ def main() -> None:
         "moving_average_window": args.moving_average_window,
         "normalization_range": args.normalization_range,
         "confidence_threshold": args.confidence_threshold,
+        "pseudo_labelling": args.pseudo_labelling,
         "files": processed_files,
         "input_rows": sum(file_info["input_rows"] for file_info in processed_files),
         "sequence_rows": sum(file_info["sequence_rows"] for file_info in processed_files),
