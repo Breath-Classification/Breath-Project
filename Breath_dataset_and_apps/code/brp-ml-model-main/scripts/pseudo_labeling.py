@@ -225,6 +225,7 @@ def decide_pseudo_label(
     window_size: int,
     amplitude: float,
     values: list[float],
+    strategy: str,
 ) -> PseudoLabelDecision:
     if confidences is None:
         return "keep"
@@ -237,7 +238,7 @@ def decide_pseudo_label(
         window_size,
         amplitude,
         values,
-        strategy="physical",
+        strategy=strategy,
     )
 #~Main Strategy
 

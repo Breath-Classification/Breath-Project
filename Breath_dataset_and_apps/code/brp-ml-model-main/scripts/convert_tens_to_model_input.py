@@ -276,8 +276,22 @@ def build_sequences(
     window_size: int,
     confidence_threshold: float,
     pseudo_labelling: bool,
+    strategy: str,
 ) -> list[list[float]]:
     sequences: list[list[float]] = []
+    decisions = {
+        "keep" : 0,
+        "relabeled" : 0,
+        "drop" : 0
+    }
+    relabeld = {
+        "blue-green": 0,
+        "blue-red": 0,
+        "blue-yellow": 0,
+        "green-red": 0,
+        "green-yellow": 0,
+        "yellow-red": 0
+    }
     for index in range(window_size, len(values)):
         position = index - window_size + window_size // 2
         label = labels[position]
@@ -286,21 +300,49 @@ def build_sequences(
         
         if pseudo_labelling:
             decision = decide_pseudo_label(confidences,position,confidence_threshold,
-                                           labels,times,window_size,amplitude,values)
+                                           labels,times,window_size,amplitude,values,strategy)
         else:
             decision = "keep"
+            decisions["keep"]+=1
         if decision == "keep":
+            decisions["keep"]+=1
             pass
         elif decision == "drop":
+            decisions["drop"]+=1
             continue
         elif isinstance(decision, tuple):
             tag, value = decision
             if tag == "relabeled":
+                decisions["relabeled"]+=1
+                if label == -1 and value == 0:
+                    relabeld[""]+=1
+                elif label == -1 and value == 1:
+                    relabeld[""]+=1
+                elif label == -1 and value == 2:
+                    relabeld[""]+=1
+                elif label == 0 and value == -1:
+                    relabeld[""]+=1
+                elif label == 0 and value == 1:
+                    relabeld[""]+=1
+                elif label == 0 and value == 2:
+                    relabeld[""]+=1
+                elif label == 1 and value == -1:
+                    relabeld[""]+=1
+                elif label == 1 and value == 0:
+                    relabeld[""]+=1
+                elif label == 1 and value == 2:
+                    relabeld[""]+=1
+                elif label == 2 and value == -1:
+                    relabeld[""]+=1
+                elif label == 2 and value == 0:
+                    relabeld[""]+=1
+                elif label == 2 and value == 1:
+                    relabeld[""]+=1
                 label = value
-
+            
         model_label = label + 1
         sequences.append([*window, amplitude, float(model_label)])
-    return sequences
+    return sequences, decisions, relabeld
 
 
 def save_pretrained(
@@ -391,7 +433,7 @@ def process_file(
         pretrained_path = pretrained_dir / f"{input_path.stem}_pretrained.txt"
         save_pretrained(pretrained_path, values, labels, aligned_times, confidences)
 
-    sequences = build_sequences(
+    sequences,_,_ = build_sequences(
         values,
         labels,
         aligned_times,
