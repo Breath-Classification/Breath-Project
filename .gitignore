@@ -9,6 +9,7 @@ Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/Matrix/
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/SavedData/
 Breath_dataset_and_apps/code/brp-ml-model-main/data
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/venv_streamlit/
+Breath_dataset_and_apps/code/brp-ml-model-main/venv/
 # Ignorowanie folderów wandb
 Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/wandb/
 
