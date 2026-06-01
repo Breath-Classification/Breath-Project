@@ -57,7 +57,7 @@ def parse_args() -> argparse.Namespace:
         default=True,
         help=(
             "Use prediction/confidence columns from app exports when available. "
-            "Pass --no-pseudo-labelling to ignore them and treat the file as raw time,value data."
+            "Pass --no-pseudo-labelling to ignore pseudo-labelling decisions while building sequences."
         ),
     )
     parser.add_argument("--save-pretrained", action="store_true")
@@ -275,6 +275,7 @@ def build_sequences(
     *,
     window_size: int,
     confidence_threshold: float,
+    pseudo_labelling: bool,
 ) -> list[list[float]]:
     sequences: list[list[float]] = []
     for index in range(window_size, len(values)):
@@ -283,8 +284,11 @@ def build_sequences(
         window = values[index - window_size:index]
         amplitude = abs(max(window) - min(window))
         
-        decision = decide_pseudo_label(confidences,position,confidence_threshold,
-                                       labels,times,window_size,amplitude,values)
+        if pseudo_labelling:
+            decision = decide_pseudo_label(confidences,position,confidence_threshold,
+                                           labels,times,window_size,amplitude,values)
+        else:
+            decision = "keep"
         if decision == "keep":
             pass
         elif decision == "drop":
@@ -394,6 +398,7 @@ def process_file(
         confidences,
         window_size=window_size,
         confidence_threshold=confidence_threshold,
+        pseudo_labelling=pseudo_labelling,
     )
     if not sequences:
         raise ValueError("Not enough high-confidence data to build model sequences. Provide a longer recording.")
