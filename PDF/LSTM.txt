@@ -1,4 +1,0 @@
-stacked lstm
-attention lstm
-Bidirectional LSTM (Bi-LSTM)
-GRU

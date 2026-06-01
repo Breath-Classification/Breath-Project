@@ -187,6 +187,9 @@ def cut(
         return "drop"
     return "keep"
 
+#~Labeling 
+
+
 
 # Main strategy
 def relabel(
@@ -225,8 +228,19 @@ def decide_pseudo_label(
 ) -> PseudoLabelDecision:
     if confidences is None:
         return "keep"
-    if position < 0 or position >= len(confidences):
-        return "drop"
+    return relabel(
+        confidences,
+        position,
+        confidence_threshold,
+        labels,
+        times,
+        window_size,
+        amplitude,
+        values,
+        strategy="physical",
+    )
+#~Main Strategy
+
 
     decision = relabel(
         confidences,

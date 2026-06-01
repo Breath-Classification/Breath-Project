@@ -3,14 +3,10 @@ from torch.utils.data import Dataset
 import numpy as np
 
 
-def to_categorical(y, num_classes=None, dtype="float32"):
-    labels = np.array(y, dtype="int64").ravel()
-    if num_classes is None:
-        num_classes = int(labels.max()) + 1 if labels.size else 0
-
-    categorical = np.zeros((labels.shape[0], num_classes), dtype=dtype)
-    if labels.size:
-        categorical[np.arange(labels.shape[0]), labels] = 1
+def to_categorical(labels, num_classes):
+    labels = np.asarray(labels, dtype=np.int64)
+    categorical = np.zeros((labels.shape[0], num_classes), dtype=np.float32)
+    categorical[np.arange(labels.shape[0]), labels] = 1.0
     return categorical
 
 '''

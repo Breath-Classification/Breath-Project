@@ -13,7 +13,7 @@ except ModuleNotFoundError:
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT_DIR = Path("data/NewData")
+DEFAULT_INPUT_DIR = PROJECT_DIR / "data" / "NewData"
 DEFAULT_SEQUENCE_DIR = DEFAULT_INPUT_DIR / "sequence"
 DEFAULT_PRETRAINED_DIR = DEFAULT_INPUT_DIR / "pretrained"
 DEFAULT_CONCATENATED_NAME = "concatenated.txt"
@@ -50,6 +50,15 @@ def parse_args() -> argparse.Namespace:
         default=0.8,
         type=float,
         help="Keep pseudo-labelled sequences whose center confidence is greater than or equal to this value.",
+    )
+    parser.add_argument(
+        "--pseudo-labelling",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "Use prediction/confidence columns from app exports when available. "
+            "Pass --no-pseudo-labelling to ignore pseudo-labelling decisions while building sequences."
+        ),
     )
     parser.add_argument("--save-pretrained", action="store_true")
     parser.add_argument("--concatenated-name", default=DEFAULT_CONCATENATED_NAME)
@@ -266,6 +275,7 @@ def build_sequences(
     *,
     window_size: int,
     confidence_threshold: float,
+    pseudo_labelling: bool,
 ) -> list[list[float]]:
     sequences: list[list[float]] = []
     for index in range(window_size, len(values)):
@@ -274,8 +284,11 @@ def build_sequences(
         window = values[index - window_size:index]
         amplitude = abs(max(window) - min(window))
         
-        decision = decide_pseudo_label(confidences,position,confidence_threshold,
-                                       labels,times,window_size,amplitude,values)
+        if pseudo_labelling:
+            decision = decide_pseudo_label(confidences,position,confidence_threshold,
+                                           labels,times,window_size,amplitude,values)
+        else:
+            decision = "keep"
         if decision == "keep":
             pass
         elif decision == "drop":
@@ -338,6 +351,7 @@ def process_file(
     moving_average_window: int,
     normalization_range: int,
     confidence_threshold: float,
+    pseudo_labelling: bool,
     save_pretrained_file: bool,
 ) -> dict:
     rows = read_rows(input_path)
@@ -351,7 +365,7 @@ def process_file(
             moving_average_window=moving_average_window,
             normalization_range=normalization_range,
         )
-    elif input_format == RAW_TIME_VALUE_PREDICTION_CONFIDENCE:
+    elif input_format == RAW_TIME_VALUE_PREDICTION_CONFIDENCE and pseudo_labelling:
         times, raw_values, source_labels, source_confidences = convert_predicted_rows(rows)
         values, labels, aligned_times, confidences = raw_to_pretrained(
             times,
@@ -360,6 +374,14 @@ def process_file(
             normalization_range=normalization_range,
             source_labels=source_labels,
             source_confidences=source_confidences,
+        )
+    elif input_format == RAW_TIME_VALUE_PREDICTION_CONFIDENCE:
+        times, raw_values, _, _ = convert_predicted_rows(rows)
+        values, labels, aligned_times, confidences = raw_to_pretrained(
+            times,
+            raw_values,
+            moving_average_window=moving_average_window,
+            normalization_range=normalization_range,
         )
     else:
         values, labels, aligned_times, confidences = load_pretrained_rows(rows)
@@ -376,6 +398,7 @@ def process_file(
         confidences,
         window_size=window_size,
         confidence_threshold=confidence_threshold,
+        pseudo_labelling=pseudo_labelling,
     )
     if not sequences:
         raise ValueError("Not enough high-confidence data to build model sequences. Provide a longer recording.")
@@ -391,7 +414,7 @@ def process_file(
         "input_rows": len(rows),
         "pretrained_rows": len(values),
         "sequence_rows": len(sequences),
-        "pseudo_labeled": confidences is not None,
+        "pseudo_labeled": confidences is not None and pseudo_labelling,
     }
 
 
@@ -427,6 +450,7 @@ def main() -> None:
             moving_average_window=args.moving_average_window,
             normalization_range=args.normalization_range,
             confidence_threshold=args.confidence_threshold,
+            pseudo_labelling=args.pseudo_labelling,
             save_pretrained_file=args.save_pretrained,
         )
         for input_file in input_files
@@ -441,6 +465,7 @@ def main() -> None:
         "moving_average_window": args.moving_average_window,
         "normalization_range": args.normalization_range,
         "confidence_threshold": args.confidence_threshold,
+        "pseudo_labelling": args.pseudo_labelling,
         "files": processed_files,
         "input_rows": sum(file_info["input_rows"] for file_info in processed_files),
         "sequence_rows": sum(file_info["sequence_rows"] for file_info in processed_files),
