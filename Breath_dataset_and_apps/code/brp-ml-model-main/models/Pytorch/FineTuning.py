@@ -78,6 +78,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", default=DEFAULT_BATCH_SIZE, type=int)
     parser.add_argument("--epochs", default=DEFAULT_EPOCHS, type=int)
     parser.add_argument("--learning-rate", default=DEFAULT_LEARNING_RATE, type=float)
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
     return parser.parse_args()
 
 
@@ -362,7 +363,10 @@ def main() -> None:
     args.layers_dir.mkdir(parents=True, exist_ok=True)
     trained_layers = parse_layers(args.trained_layers)
     run_id = args.run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if args.device == "auto":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device(args.device)
 
     train_data_txt, test_data_txt = resolve_data_files(args)
     train_dataloader, test_dataloader = load_dataloaders(

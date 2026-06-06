@@ -60,6 +60,7 @@ def parse_args() -> argparse.Namespace:
             "Pass --no-pseudo-labelling to ignore pseudo-labelling decisions while building sequences."
         ),
     )
+    parser.add_argument("--strategy", default="none", type=str)
     parser.add_argument("--save-pretrained", action="store_true")
     parser.add_argument("--concatenated-name", default=DEFAULT_CONCATENATED_NAME)
     return parser.parse_args()
@@ -236,6 +237,16 @@ def monotonicity(values: list[float], threshold: float = 0.0079) -> list[int]:
     return labels
 
 
+def label_name(label: int) -> str:
+    names = {
+        -1: "red",
+        0: "green",
+        1: "blue",
+        2: "yellow",
+    }
+    return names.get(label, str(label))
+
+
 def raw_to_pretrained(
     times: list[float],
     raw_values: list[float],
@@ -276,8 +287,17 @@ def build_sequences(
     window_size: int,
     confidence_threshold: float,
     pseudo_labelling: bool,
-) -> list[list[float]]:
+    strategy: str,
+) -> tuple[list[list[float]], dict[str, int], dict[str, int]]:
     sequences: list[list[float]] = []
+    decisions = {
+        "keep": 0,
+        "relabeled": 0,
+        "drop": 0,
+        "None": 0,
+    }
+    relabeled: dict[str, int] = {}
+
     for index in range(window_size, len(values)):
         position = index - window_size + window_size // 2
         label = labels[position]
@@ -286,21 +306,28 @@ def build_sequences(
         
         if pseudo_labelling:
             decision = decide_pseudo_label(confidences,position,confidence_threshold,
-                                           labels,times,window_size,amplitude,values)
+                                           labels,times,window_size,amplitude,values,strategy)
         else:
             decision = "keep"
+
+        if decision is None:
+            decisions["None"] += 1
         if decision == "keep":
-            pass
+            decisions["keep"]+=1
         elif decision == "drop":
+            decisions["drop"]+=1
             continue
         elif isinstance(decision, tuple):
             tag, value = decision
             if tag == "relabeled":
+                decisions["relabeled"]+=1
+                change = f"{label_name(label)}->{label_name(value)}"
+                relabeled[change] = relabeled.get(change, 0) + 1
                 label = value
-
+            
         model_label = label + 1
         sequences.append([*window, amplitude, float(model_label)])
-    return sequences
+    return sequences, decisions, relabeled
 
 
 def save_pretrained(
@@ -353,6 +380,7 @@ def process_file(
     confidence_threshold: float,
     pseudo_labelling: bool,
     save_pretrained_file: bool,
+    strategy: str = "none",
 ) -> dict:
     rows = read_rows(input_path)
     input_format = detect_input_format(rows)
@@ -391,7 +419,7 @@ def process_file(
         pretrained_path = pretrained_dir / f"{input_path.stem}_pretrained.txt"
         save_pretrained(pretrained_path, values, labels, aligned_times, confidences)
 
-    sequences = build_sequences(
+    sequences, decisions, relabeled = build_sequences(
         values,
         labels,
         aligned_times,
@@ -399,6 +427,7 @@ def process_file(
         window_size=window_size,
         confidence_threshold=confidence_threshold,
         pseudo_labelling=pseudo_labelling,
+        strategy=strategy,
     )
     if not sequences:
         raise ValueError("Not enough high-confidence data to build model sequences. Provide a longer recording.")
@@ -415,6 +444,8 @@ def process_file(
         "pretrained_rows": len(values),
         "sequence_rows": len(sequences),
         "pseudo_labeled": confidences is not None and pseudo_labelling,
+        "decisions": decisions,
+        "relabeled": relabeled,
     }
 
 
@@ -451,6 +482,7 @@ def main() -> None:
             normalization_range=args.normalization_range,
             confidence_threshold=args.confidence_threshold,
             pseudo_labelling=args.pseudo_labelling,
+            strategy=args.strategy,
             save_pretrained_file=args.save_pretrained,
         )
         for input_file in input_files
@@ -466,9 +498,18 @@ def main() -> None:
         "normalization_range": args.normalization_range,
         "confidence_threshold": args.confidence_threshold,
         "pseudo_labelling": args.pseudo_labelling,
+        "strategy": args.strategy,
         "files": processed_files,
         "input_rows": sum(file_info["input_rows"] for file_info in processed_files),
         "sequence_rows": sum(file_info["sequence_rows"] for file_info in processed_files),
+        "decisions": {
+            key: sum(file_info["decisions"].get(key, 0) for file_info in processed_files)
+            for key in ["keep", "relabeled", "drop", "None"]
+        },
+        "relabeled": {
+            change: sum(file_info["relabeled"].get(change, 0) for file_info in processed_files)
+            for change in sorted({change for file_info in processed_files for change in file_info["relabeled"]})
+        },
     }
     manifest_path = output_dir / f"{Path(processed_files[-1]['source_file']).stem}_conversion_manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
