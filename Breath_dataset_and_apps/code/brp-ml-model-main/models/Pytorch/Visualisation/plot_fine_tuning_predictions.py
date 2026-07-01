@@ -11,10 +11,10 @@ import torch
 
 PYTORCH_DIR = Path(__file__).resolve().parents[1]
 ML_ROOT = PYTORCH_DIR.parents[1]
-if str(PYTORCH_DIR) not in sys.path:
-    sys.path.insert(0, str(PYTORCH_DIR))
-if str(ML_ROOT) not in sys.path:
-    sys.path.insert(0, str(ML_ROOT))
+EXPERIMENTS_DIR = PYTORCH_DIR / "Experiments"
+for path in (PYTORCH_DIR, ML_ROOT, EXPERIMENTS_DIR):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 from EvaluateFineTuning import apply_layer_artifacts, load_manifest, load_model_for_eval  # noqa: E402
 from scripts.convert_tens_to_model_input import (  # noqa: E402
@@ -39,6 +39,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--confidence-threshold", default=0.0, type=float)
     parser.add_argument("--block-size", default=30, type=int)
     parser.add_argument("--batch-size", default=64, type=int)
+    parser.add_argument(
+        "--device",
+        choices=["auto", "cpu", "cuda"],
+        default="cpu",
+        help="Device for inference. CPU is the default because some exported mobile TorchScript models create hidden states on CPU.",
+    )
     parser.add_argument("--no-plot", action="store_true", help="Only write CSV and JSON summary.")
     return parser.parse_args()
 
@@ -183,6 +189,9 @@ def accuracy(rows: list[dict[str, float | int | str]], prediction_column: str) -
 
 
 def plot_timeline(path: Path, rows: list[dict[str, float | int | str]]) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     plotted_rows = [row for row in rows if "local_base_prediction" in row and "local_fine_tuned_prediction" in row]
@@ -346,7 +355,9 @@ def main() -> None:
     if len(timeline_rows) < args.block_size:
         raise ValueError(f"Need at least {args.block_size} timeline rows, got {len(timeline_rows)}.")
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() and args.device != "cpu" else "cpu")
+    if args.device == "cuda":
+        device = torch.device("cuda")
     feature_count = len(timeline_rows[0]["features"])
     base_model = load_model_for_eval(
         manifest=manifest,
