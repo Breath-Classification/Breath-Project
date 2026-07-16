@@ -91,9 +91,9 @@ def transitions(model_path):
     "red-yellow":0
     
     }
-    for i in range(len(y_pred)-1):
-        previous = y_true[i]
-        next = y_true[i+1]
+    for i in range(len(y_pred)-1): 
+        previous = y_pred[i]
+        next = y_pred[i+1]
         if previous == 0 and next == 1:
             mistakes["green-red"] += 1
         elif previous == 1 and next == 0:
@@ -190,3 +190,19 @@ def avg_min_max_class_lenght(model_path):
             
     return ClassMin,ClassMax,ClassAvg
 
+
+def numer_of_segments(model_path):
+    y_pred,y_true,_,_ = load_model_and_predict(model_path)
+    n_samples = len(y_pred)
+
+    tab = [0 for i in range(6)]
+    counter = 1
+    for i in range(1,len(y_pred)):
+        if y_true[i-1]==y_true[i]:
+            counter +=1
+        else:
+            if counter < 6:
+                tab[counter] += 1
+            counter = 1
+            tab[0]+=1
+    return tab 

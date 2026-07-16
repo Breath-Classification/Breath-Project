@@ -331,14 +331,15 @@ def create_optimizer(optimizer_type="Adam", model=None, learning_rate=None, fine
         case _:
             raise ValueError("wrong fine_tuning type")
 
-
+#Settings dataloader
 def config_dataloaders(
     block_size,
     batch_size,
     target,
     dataset_type,
     train_data_txt="../../data/pretrained/tens_sequence/tens_concatenated.txt",
-    test_data_txt="../../data/pretrained/tens_sequence/tens_test.txt",
+    #test_data_txt="../../data/pretrained/tens_sequence/tens_test.txt",
+    test_data_txt="../../data/NewData/sequence/concatenated.txt",
 ):
     data_transform = transforms.Compose([
             transforms.Resize((64, 64)),
@@ -452,7 +453,7 @@ def load_model_and_predict(model_path):
     train,test= config_dataloaders(block_size,batch_size,target,dataset_type)
     model = create_model(hidden_units,output_shape,model_type,train,test)
     
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location="cpu"))
 
     all_preds, all_trues, all_features,all_paths = evaluate_model(model,test,dataset_type)
     return all_preds,all_trues,all_features,all_paths
