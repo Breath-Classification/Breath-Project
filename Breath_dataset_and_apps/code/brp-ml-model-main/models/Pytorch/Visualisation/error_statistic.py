@@ -131,8 +131,8 @@ def count_avg_min_max(true_class,ClassMin, ClassMax, ClassSum, ClassCount,counte
         ClassMax[true_class]=counter
     
 def avg_min_max_class_lenght(model_path):
-    y_pred,y_true,X,_ = load_model_and_predict(model_path)
-    
+   # y_pred,y_true,X,_ = load_model_and_predict(model_path)
+    y_pred,y_true = erase_illegal_transition(model_path)
     ClassMin = {
         "red": 100, 
         "blue": 100,
@@ -206,3 +206,13 @@ def numer_of_segments(model_path):
             counter = 1
             tab[0]+=1
     return tab 
+
+def erase_illegal_transition(model_path):
+    y_pred,y_true,_,_ = load_model_and_predict(model_path)
+    n_samples = len(y_pred)
+
+    
+    for i in range(1,len(y_pred)):
+        if (y_pred[i-1]==3 and y_pred[i] == 1) or (y_pred[i-1]==1 and y_pred[i] == 3):
+            y_pred[i]=y_pred[i-1]
+    return y_pred,y_true

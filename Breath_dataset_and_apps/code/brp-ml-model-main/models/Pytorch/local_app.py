@@ -473,12 +473,14 @@ def statistic_plot():
                 summary_rows.append(
                     {
                         "model": model_display_name(model_info["path"]),
-                        "best saved score": format_metric_value(model_info["score"] * 100),
-                        "avg_sizeof_error": format_metric_value(metrics["avg_sizeof_error"]),
-                        "avg_position_error": format_metric_value(metrics["avg_position_error"]),
-                        "count_error": format_metric_value(metrics["count_error"]),
                         "mistakes": str(metrics["mistakes"]),
-                        "number_of_segments": str(metrics["number_of_segments"]),
+                        
+                       # "best saved score": format_metric_value(model_info["score"] * 100),
+                        #"avg_sizeof_error": format_metric_value(metrics["avg_sizeof_error"]),
+                        #"avg_position_error": format_metric_value(metrics["avg_position_error"]),
+                        #"count_error": format_metric_value(metrics["count_error"]),
+                        #"number_of_segments": str(metrics["number_of_segments"]),
+                        
                     }
                 )
 
@@ -490,11 +492,13 @@ def statistic_plot():
             st.write("Mistakes:")
             st.dataframe(metrics["mistakes"])
 
+            '''
             st.write("Number of segments:")
             st.dataframe(metrics["number_of_segments"])
             st.pyplot(plot_single_error_metric(group_name, "avg_sizeof_error", metrics_by_model))
             st.pyplot(plot_single_error_metric(group_name, "avg_position_error", metrics_by_model))
             st.pyplot(plot_single_error_metric(group_name, "count_error", metrics_by_model))
+            '''
     
         st.session_state.error_statistic = False
 
