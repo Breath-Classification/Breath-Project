@@ -27,4 +27,7 @@ scripts/error_tolerance.py
 scripts/evaluate_fine_tuning.py
 scripts/evaluate_pseudo_labelling.py
 scripts/labelling.py
+scripts/load_data.py
+scripts/normalization.py
+scripts/plot.py
 scripts/pseudo_labeling.py
