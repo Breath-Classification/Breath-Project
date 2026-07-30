@@ -62,7 +62,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
                       dropout =0, num_layers=2, dim_feedforward =64, 
                       nhead  =2, d_model=32,best_acc=0.99,lambda_con0=0,
                       lambda_con1=0,lambda_con2=0,lambda_con3=0,
-                      save_path=None, save_filename=None):
+                      save_path=None, save_filename=None, train_data_path=None, test_data_path=None):
    
     #logs
     wandb.init(
@@ -81,7 +81,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
             "optimizer":"Adam"
         }
     ) 
-    train,test =config_dataloaders(block_size,batch_size,target,dataset_type)
+    train,test =config_dataloaders(block_size,batch_size,target,dataset_type, train_data_path,test_data_path)
 
     model = create_model(hidden_units,output_shape,model_type,train,test,dropout,num_layers,dim_feedforward,nhead, d_model)
     model.to("cuda")
@@ -95,7 +95,7 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     elif  dataset_type=="SequenceDataset":
         results,end =Engines.engine.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, 0.942) #stop i set
     elif dataset_type=="SequenceBlockWindowDataset":
-        results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", True, best_acc,lambda_con0,lambda_con1,lambda_con2,lambda_con3) #stop i set 
+        results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, best_acc,lambda_con0,lambda_con1,lambda_con2,lambda_con3) #stop i set 
     
     wandb.finish()
     save_model_mobile(model)
