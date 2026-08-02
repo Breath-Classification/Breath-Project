@@ -20,7 +20,7 @@ def concatenate_sequences(folder):
 
                     line = line.strip()
 
-                    if line:  # pomijamy puste linie
+                    if line:
                         outfile.write(line + "\n")
 
     return output_file
@@ -39,9 +39,17 @@ if __name__ == "__main__":
     )
 
 
+    NUM_RUNS = 5
+
+
     for fold in folds:
 
         print(f"\n===== {fold.name} =====")
+
+
+        # folder dla konkretnego folda
+        fold_results_dir = results_dir / fold.name
+        fold_results_dir.mkdir(exist_ok=True)
 
 
         # tworzenie concatenated
@@ -54,44 +62,54 @@ if __name__ == "__main__":
         )
 
 
-        # trening
-        results = train_and_predict(
-            block_size=30,
-            batch_size=32,
-            target=0,
-            hidden_units=106,
-            output_shape=4,
-            model_type="LSTM_MIX",
-            learning_rate=0.003461279782396843,
-            num_epchos=100,
-            dropout=0.3875032734956426,
-            num_layers=2,
+        for run in range(1, NUM_RUNS + 1):
 
-            lambda_con0=0.45253030622706797,
-            lambda_con1=0.7980523096367567,
-            lambda_con2=0.4705314248078593,
-            lambda_con3=0.9098874037274234,
-
-            dataset_type="SequenceBlockWindowDataset",
-            loos_type="CrossEntropyLoss",
-
-            train_data_path=str(train_file),
-            test_data_path=str(test_file),
-        )
-
-
-        # zapis wyników
-        result_file = results_dir / f"{fold.name}_results.json"
-
-        with open(result_file, "w") as f:
-            json.dump(
-                results,
-                f,
-                indent=4,
-                default=str
+            print(
+                f"\n--- {fold.name} RUN {run}/{NUM_RUNS} ---"
             )
 
 
-        print(f"{fold.name} zapisany.")
-        
-        
+            results = train_and_predict(
+                block_size=30,
+                batch_size=32,
+                target=0,
+                hidden_units=106,
+                output_shape=4,
+                model_type="LSTM_MIX",
+                learning_rate=0.003461279782396843,
+                num_epchos=100,
+                dropout=0.3875033062276,
+                num_layers=2,
+
+                lambda_con0=0.45253030622706797,
+                lambda_con1=0.7980523096367567,
+                lambda_con2=0.4705314248078593,
+                lambda_con3=0.9098874037274234,
+
+                dataset_type="SequenceBlockWindowDataset",
+                loos_type="CrossEntropyLoss",
+
+                train_data_path=str(train_file),
+                test_data_path=str(test_file),
+            )
+
+
+            result_file = (
+                fold_results_dir /
+                f"run_{run}_results.json"
+            )
+
+
+            with open(result_file, "w") as f:
+
+                json.dump(
+                    results,
+                    f,
+                    indent=4,
+                    default=str
+                )
+
+
+            print(
+                f"{fold.name} run {run} zapisany."
+            )
