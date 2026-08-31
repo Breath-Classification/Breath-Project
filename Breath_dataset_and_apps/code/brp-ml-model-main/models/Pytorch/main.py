@@ -28,6 +28,7 @@ import wandb
 from enum import Enum
 import os
 import json
+import ast
 #scripts
 from scripts.HMM import viterbi_algorithm 
 
@@ -44,6 +45,25 @@ BLOCK_SIZE=[30]
 SENSOR = SensorType.TENSOMETER
 SENSOR_NAME = SENSOR.value["name"]
 TARGET = 2
+
+def load_best_params_from_txt(txt_path):
+    with open(txt_path, "r", encoding="utf-8") as file:
+        content = file.read()
+
+    marker = "Najlepsze hiperparametry:"
+    if marker not in content:
+        raise ValueError(f"Missing best hyperparameters marker in {txt_path}")
+
+    params_text = content.split(marker, 1)[1].strip()
+    params = ast.literal_eval(params_text)
+    best_value = None
+    for line in content.splitlines():
+        if "with value:" in line:
+            best_value = float(line.rsplit("with value:", 1)[1].strip().rstrip("."))
+            break
+
+    params["best_value"] = best_value
+    return params
 
 #Usage of Wandb
 
@@ -81,7 +101,10 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
             "optimizer":"Adam"
         }
     ) 
-    train,test =config_dataloaders(block_size,batch_size,target,dataset_type, train_data_path,test_data_path)
+    if train_data_path is None and test_data_path is None:
+        train,test =config_dataloaders(block_size,batch_size,target,dataset_type)
+    else:
+        train,test =config_dataloaders(block_size,batch_size,target,dataset_type, train_data_path,test_data_path)
 
     model = create_model(hidden_units,output_shape,model_type,train,test,dropout,num_layers,dim_feedforward,nhead, d_model)
     model.to("cuda")
@@ -98,9 +121,10 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
         results,end =Engines.engine_CRF.train(model, train, test, optimizer, loss_fn, num_epchos, "cuda", False, best_acc,lambda_con0,lambda_con1,lambda_con2,lambda_con3) #stop i set 
     
     wandb.finish()
-    save_model_mobile(model)
-    #optuna tuning 
-    return results
+    try:
+        save_model_mobile(model, filename=save_filename or model_type)
+    except Exception as error:
+        print(f"Skipping mobile export: {error}")
     
     
     config = {
@@ -118,7 +142,14 @@ def train_and_predict(block_size,batch_size,target,hidden_units,output_shape,
     }
     current_acc = max(results["max_test_acc"]) if results["max_test_acc"] else 0.0
 
-    if save_path and save_filename and current_acc > best_acc:
+    config["dropout"] = dropout
+    config["num_layers"] = num_layers
+    config["dim_feedforward"] = dim_feedforward
+    config["nhead"] = nhead
+    config["d_model"] = d_model
+    config["best_acc"] = current_acc
+
+    if save_path and save_filename:
         save_model(model, config, path=save_path, filename=save_filename)
         return results
     if end ==True:
@@ -153,11 +184,13 @@ def save_model(model, config, path, filename=""):
         if filename=="":
             filename = input("input name of the saved model ")
         torch.save(model.state_dict(), f"{path}/{filename}.pth")
+        print(f"Model saved as {path}/{filename}.pth")
     else:
         torch.save(model.state_dict(), f"{path}/Class_Weightening.pth")
     
     with open(f"{path}/{filename}.json", "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
+    print(f"Config saved as {path}/{filename}.json")
 
 def evaluate_model(model, test,dataset_type):
     all_preds = []
@@ -491,21 +524,32 @@ def load_model(
 
 
 if __name__ == "__main__":
-    
-  
-    results = train_and_predict(block_size=30,
-                        batch_size=128,
-                        target=0,
-                        hidden_units=64,
-                        output_shape=4,
-                        model_type="LSTM_ATTENTION",
-                        learning_rate=0.001,
-                        num_epchos=2,
-                        dropout=0.2,
-                        num_layers=1,
-                        dataset_type="SequenceDataset",
-                        loos_type="CrossEntropyLoss")
-   
-    
-    
-   
+    best_params = load_best_params_from_txt("models/Transformers/TCCR.txt")
+    d_model = best_params["head_dim"] * best_params["nhead"]
+
+    print("Training Transformer with best params from models/Transformers/Transformer.txt")
+    print(best_params)
+
+    results = train_and_predict(
+        block_size=best_params["block_size"],
+        batch_size=best_params["batch_size"],
+        target=0,
+        hidden_units=best_params["hidden_units"],
+        output_shape=4,
+        model_type="Transformer_CNN_CRF",
+        learning_rate=best_params["lr"],
+        num_epchos=200,
+        dropout=best_params["dropout"],
+        num_layers=best_params["num_layers"],
+        dim_feedforward=best_params["dim_feedforward"],
+        nhead=best_params["nhead"],
+        d_model=d_model,
+        dataset_type="SequenceBlockDataset",
+        loos_type="CrossEntropyLoss",
+        optimizer_type="Adam",
+        best_acc=best_params["best_value"],
+        save_path="models/saved_models/manual/BlockDataset/FocalLossAdaptive/Transformer",
+        save_filename="Transformer_best_txt",
+    )
+
+    print("Finished training Transformer")
