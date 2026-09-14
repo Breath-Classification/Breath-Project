@@ -1,6 +1,6 @@
 ## Introduction
 
-This repository contains a respiratory analysis framework based on artificial intelligence and machine learning. The project is an extension of the work presented in [original project/publication], which was initially developed using the TensorFlow framework.
+This repository contains a respiratory analysis framework based on artificial intelligence and machine learning. The project is an extension of the work presented in https://www.nature.com/articles/s41597-025-04625-5, which was initially developed using the TensorFlow framework.
 
 The main goal of this project is to provide a more flexible and extensible environment for developing, training, evaluating, and deploying models for respiratory phase recognition. The original TensorFlow implementation was migrated to PyTorch and extended with additional machine learning models, including LSTM-based architectures, Transformers, and a physiology-aware model incorporating knowledge about the respiratory process.
 
@@ -24,6 +24,60 @@ The main contributions of this project are:
 
 ## System Overview
 
+This repository is one of three repositories that together form the complete respiratory analysis and personalization system.
+
+| Repository           | Description                                                                                                       | Link                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **Machine Learning** | Machine learning framework for training, evaluating, and analyzing respiratory phase recognition models.          | [This repository](https://github.com/Breath-Classification/Breath-Project)           |
+| **Backend**          | Backend responsible for communication, server-side model personalization, and supporting the mobile application.  | [Backend repository](https://github.com/maciejdrywa/BreathSenseApp-backend)   |
+| **Frontend**         | Cross-platform mobile application for Android and iOS, including on-device and server-side model personalization. | [Frontend repository](https://github.com/maciejdrywa/BreathSenseApp-frontend) |
+
+### Machine Learning Repository
+
+This repository contains the main machine learning part of the project. It provides the models, training procedures, evaluation methods, datasets, and tools required for respiratory phase analysis.
+
+For **analysis and training of models using the existing datasets**, only this repository is required. The Backend and Frontend repositories are not necessary for these tasks.
+
+The Backend and Frontend repositories are required when using the **personalization framework**, including model fine-tuning and running the complete mobile application.
+
+This repository contains the main documentation of the machine learning part of the project. More detailed information about the Backend and Frontend components, including their installation, configuration, and usage, can be found in their respective repositories.
+
+A more detailed overview of the complete system architecture will be provided below.
+
+## Repository Structure
+
+The main structure of the repository is organized around the machine learning framework and the application code.
+
+```text
+Breath-Project/
+├── Breath_dataset_and_apps/
+│   └── code/
+│       ├── brp-ml-model-main/
+│       │   ├── graphs/
+│       │   ├── models/
+│       │   │   ├── Keras/
+│       │   │   └── Pytorch/
+│       │   └── scripts/
+│       └── brp-app-main/
+│
+└── ...
+```
+
+### Main Directories
+
+| Directory                                                        | Description                                                                                         |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `Breath_dataset_and_apps/code/brp-ml-model-main/`                | Main machine learning project containing the models, experiments, and training scripts.             |
+| `Breath_dataset_and_apps/code/brp-ml-model-main/models/`         | Contains the implemented machine learning models, including both Keras and PyTorch implementations. |
+| `Breath_dataset_and_apps/code/brp-ml-model-main/models/Keras/`   | Contains the original TensorFlow/Keras implementation.                                              |
+| `Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch/` | Contains the current PyTorch implementation and the main development of the extended framework.     |
+| `Breath_dataset_and_apps/code/brp-app-main/`                     | Contains the mobile application code from the original project.                                     |
+
+The **PyTorch implementation** is the main part of the current machine learning framework. The **Keras implementation** is retained to provide compatibility with and reference to the original work.
+
+
+
+
 
 ## Contributors
 
@@ -38,7 +92,7 @@ The main contributions of this project are:
 
 The project uses two main sources of respiratory data:
 
-* **Original dataset** – the data used in the original work are available in [repository/link]. These data were used to reproduce and extend the original experiments and to provide compatibility with the previous TensorFlow implementation.
+* **Original dataset** – the data used in the original work are available in [https://mostwiedzy.pl/en/open-research-data/respiratory-rythm-phases-classifiction-dataset,40910301641618-0]. These data were used to reproduce and extend the original experiments and to provide compatibility with the previous TensorFlow implementation.
 
 * **New dataset** – additional respiratory data were collected by the authors of this project and are available in [repository/link]. These data were collected using the same general measurement approach and were used to develop and evaluate the extended framework and its models.
 
@@ -88,8 +142,8 @@ The project uses the following technologies and tools:
 Clone the repository and navigate to the project directory:
 
 ```bash
-git clone <REPOSITORY_URL>
-cd <REPOSITORY_DIRECTORY>
+git clone <https://github.com/Breath-Classification/Breath-Project>
+cd <Breath-Project>
 ```
 
 The project uses Docker to provide the required environment and dependencies. Make sure that Docker and Docker Compose are installed on your system.
@@ -112,7 +166,7 @@ The Docker environment contains the dependencies required to run the machine lea
 
 The new cross-platform mobile application is maintained in a separate repository. Instructions for installing and running the Android and iOS application are available in the frontend repository:
 
-[Frontend Repository](FRONTEND_REPOSITORY_URL)
+[Frontend Repository](https://github.com/maciejdrywa/BreathSenseApp-frontend)
 
 ## Running the Physiology-Aware Framework
 
@@ -131,7 +185,7 @@ Once the container is running, the framework can be used to train and evaluate t
 The main entry point is located in:
 
 ```text
-<path_to_main>
+<Breath-Project/Breath_dataset_and_apps/code/brp-ml-model-main/models/Pytorch>
 ```
 
 Running the main script starts the default training pipeline for the **Physiology-Aware Model**:
@@ -145,7 +199,7 @@ python main.py
 Additional training and evaluation scripts are available in:
 
 ```text
-<path_to_scripts>
+<Breath-Project/Breath_dataset_and_apps/code/brp-ml-model-main/scripts>
 ```
 
 These scripts can be executed independently depending on the experiment or evaluation procedure being performed.
@@ -198,9 +252,9 @@ The Personalization Framework consists of three separate repositories that shoul
 
 ```text
 project/
-├── respiratory-framework/
-├── respiratory-backend/
-└── respiratory-frontend/
+├── Breath-Project/
+├── BreathSenseApp-backend/
+└── BreathSenseApp-frontend/
 ```
 
 The framework uses Docker Compose to run the required backend services and their dependencies.
@@ -230,13 +284,77 @@ The personalization mechanisms can also be tested directly without using the mob
 Additional scripts for testing and evaluating the personalization process are available in:
 
 ```text
-<path_to_personalization_scripts>
+<Breath-Project/Breath_dataset_and_apps/code/brp-ml-model-main/scripts>
 ```
 
 These scripts allow the personalization pipeline to be executed and tested directly from the command line.
 
 
-## Evaluation
+## Data Collection and Preparation
+
+The respiratory data used by the framework are collected using a **tensometric sensor mounted on a chest strap**. The sensor records changes in the circumference of the chest during breathing, which can then be processed into respiratory phase data suitable for machine learning models.
+
+The following workflow can be used to prepare newly collected measurements for model training, fine-tuning, or evaluation.
+
+### 1. Data Conversion
+
+After collecting a measurement, the raw tensometric data should first be converted into the format used by the machine learning framework.
+
+```bash
+python scripts/convert_tens_to_model_input.py \
+    --input "data/path/to/raw_measurement.txt" \
+    --save-pretrained \
+    --no-pseudo-labelling
+```
+
+The `--input` argument specifies the path to the raw measurement file.
+
+The `--save-pretrained` option saves the converted data in the format required by the subsequent processing steps.
+
+The `--no-pseudo-labelling` flag is used when pseudo-labels should **not** be generated during the conversion. This is useful when the data are intended to be manually labelled before being used for further training or evaluation.
+
+### 2. Labelling
+
+The converted data can then be labelled using the labelling script:
+
+```bash
+python scripts/labelling.py \
+    "data/path/to/pretrained_measurement.txt"
+```
+
+This step assigns respiratory phase labels to the recorded signal.
+
+### 3. Convert the Labelled Data
+
+After labelling, the data should be converted once again so that the final file contains the required format for model training and evaluation.
+
+```bash
+python scripts/convert_tens_to_model_input.py \
+    --input "data/path/to/labelled_measurement.txt"
+```
+
+The resulting file can then be used as an input for the machine learning framework.
+
+### 4. Using the Prepared Data
+
+Once the data have been processed, they can be used in several ways:
+
+* **Model training** – the new data can be included in the training process and used with the main training pipeline.
+* **Model evaluation** – the data can be used to evaluate an already trained model.
+* **Fine-tuning** – the data can be used to adapt an existing model to a specific user.
+* **Pseudo-labelling experiments** – the data can be processed using pseudo-labelling and used to investigate its effect on model personalization and performance.
+
+For example, a fine-tuned model can be evaluated using:
+
+```bash
+python scripts/evaluate_fine_tuning.py \
+    --base_model "data/path/to/base_model.pt" \
+    --fine_tuned_model "data/path/to/fine_tuned_model.pt" \
+    --labelled_file "data/path/to/labelled_sequence.txt"
+```
+
+The exact scripts and parameters can be adjusted depending on whether the collected data are intended for training, evaluation, or personalization experiments.
+
 
 ## Citation
 
