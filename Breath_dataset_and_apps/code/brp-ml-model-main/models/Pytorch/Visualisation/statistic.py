@@ -97,5 +97,106 @@ def f_scale(precision, recall):
     F1_score = 2* precision*recall /(precision+recall)
     return F1_score
 
+
+def extract_transitions(sequence):
+ 
+    transitions = []
+
+    for i in range(1, len(sequence)):
+        previous_phase = sequence[i - 1]
+        current_phase = sequence[i]
+
+        if previous_phase != current_phase:
+            transitions.append(
+                (i, previous_phase, current_phase)
+            )
+
+    return transitions
+
+
+def match_transitions(predicted_transitions, true_transitions, epsilon):
+ 
+    matched_true = set()
+    matched_pred = set()
+
+    for pred_idx, (pred_position, pred_from, pred_to) in enumerate(
+        predicted_transitions
+    ):
+        best_true_idx = None
+        best_distance = None
+
+        for true_idx, (true_position, true_from, true_to) in enumerate(
+            true_transitions
+        ):
+            if true_idx in matched_true:
+                continue
+
+            if pred_from != true_from or pred_to != true_to:
+                continue
+
+            distance = abs(pred_position - true_position)
+
+            if distance <= epsilon:
+                if best_distance is None or distance < best_distance:
+                    best_distance = distance
+                    best_true_idx = true_idx
+
+        if best_true_idx is not None:
+            matched_pred.add(pred_idx)
+            matched_true.add(best_true_idx)
+
+    TP = len(matched_pred)
+    FP = len(predicted_transitions) - TP
+    FN = len(true_transitions) - TP
+
+    return TP, FP, FN
+
+
+def transition_edtt_f1(model_path):
+
+    y_pred, y_true, _, _ = load_model_and_predict(model_path)
+
+    if torch.is_tensor(y_pred):
+        y_pred = y_pred.detach().cpu().tolist()
+
+    if torch.is_tensor(y_true):
+        y_true = y_true.detach().cpu().tolist()
+
+    predicted_transitions = extract_transitions(y_pred)
+    true_transitions = extract_transitions(y_true)
+
+    epsilons = 2
+    f1_scores = []
+
+    for epsilon in range(epsilons):
+        TP, FP, FN = match_transitions(
+            predicted_transitions,
+            true_transitions,
+            epsilon
+        )
+
+        if TP + FP == 0:
+            precision_value = 0
+        else:
+            precision_value = TP / (TP + FP)
+
+        if TP + FN == 0:
+            recall_value = 0
+        else:
+            recall_value = TP / (TP + FN)
+
+        if precision_value + recall_value == 0:
+            f1 = 0
+        else:
+            f1 = (2 * precision_value* recall_value/ (precision_value + recall_value))
+
+        f1_scores.append(f1 * 100)
+
+    return f1_scores
+
 if __name__ == "__main__":
-     acc = epsilon_accuracy("")
+
+    edtt_f1 = transition_edtt_f1("LSTM_BASE_0.8831.pth")
+
+    print("Transition EDTT F1:")
+    print(edtt_f1)

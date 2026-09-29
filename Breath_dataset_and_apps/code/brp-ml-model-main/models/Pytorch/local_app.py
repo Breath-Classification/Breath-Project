@@ -28,6 +28,7 @@ from Visualisation.statistic import epsilon_RR_accuracy
 from Visualisation.statistic import precision
 from Visualisation.statistic import recall
 from Visualisation.statistic import f_scale
+from Visualisation.statistic import transition_edtt_f1
 
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parents[1]
