@@ -165,34 +165,30 @@ def transition_edtt_f1(model_path):
     predicted_transitions = extract_transitions(y_pred)
     true_transitions = extract_transitions(y_true)
 
-    epsilons = 2
-    f1_scores = []
+    epsilon = 2
 
-    for epsilon in range(epsilons):
-        TP, FP, FN = match_transitions(
-            predicted_transitions,
-            true_transitions,
-            epsilon
-        )
+    TP, FP, FN = match_transitions(
+        predicted_transitions,
+        true_transitions,
+        epsilon
+    )
 
-        if TP + FP == 0:
-            precision_value = 0
-        else:
-            precision_value = TP / (TP + FP)
+    if TP + FP == 0:
+        precision_value = 0
+    else:
+        precision_value = TP / (TP + FP)
 
-        if TP + FN == 0:
-            recall_value = 0
-        else:
-            recall_value = TP / (TP + FN)
+    if TP + FN == 0:
+        recall_value = 0
+    else:
+        recall_value = TP / (TP + FN)
 
-        if precision_value + recall_value == 0:
-            f1 = 0
-        else:
-            f1 = (2 * precision_value* recall_value/ (precision_value + recall_value))
+    if precision_value + recall_value == 0:
+        f1 = 0
+    else:
+        f1 = (2 * precision_value * recall_value   / (precision_value + recall_value))
 
-        f1_scores.append(f1 * 100)
-
-    return f1_scores
+    return f1 * 100
 
 if __name__ == "__main__":
 

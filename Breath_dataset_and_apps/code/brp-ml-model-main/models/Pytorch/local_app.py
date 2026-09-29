@@ -97,6 +97,7 @@ def calculate_accuracy_metrics(model_path):
         "standard accuracy": standard_accuracy(model_path_str),
         "epsilon accuracy": with_epsilon_accuracy(model_path_str),
         "transition accuracy": number_of_transitions_accuracy(model_path_str),
+        "transition EDTT F1": transition_edtt_f1(model_path_str),
         "cycle accuracy": cycle_accuracy(model_path_str),
     }
 
@@ -222,7 +223,7 @@ def starting_page():
         col11, col12 = st.columns(2)
         col21, col22 = st.columns(2)
         col31, col32 = st.columns(2)
-
+        col41,col42 =st.columns(2)
         if col12.button("show"):
             st.session_state.page = "show"
 
@@ -240,6 +241,9 @@ def starting_page():
 
         if col32.button("accuracy_statistic"):
             st.session_state.page = "accuracy_statistic"
+        
+        if col41.button("single_model_accuracy"):
+            st.session_state.page = "single_model_accuracy"
 
         if st.session_state.page == "mistakes":
             mistakes()
@@ -258,7 +262,60 @@ def starting_page():
 
         elif st.session_state.page == "accuracy_statistic":
             accuracy()
+        elif st.session_state.page == "single_model_accuracy":
+            single_model_accuracy()
 
+def single_model_accuracy():
+    st.subheader("Single Model Accuracy")
+
+    model_files = sorted(
+        SAVED_MODELS_DIR.rglob("*.pth")
+    )
+
+    if not model_files:
+        st.warning(f"No .pth models found in {SAVED_MODELS_DIR}.")
+        return
+
+    model_options = {
+        str(
+            model_path.relative_to(SAVED_MODELS_DIR)
+        ): model_path
+        for model_path in model_files
+    }
+
+    selected_model = st.selectbox(
+        "Choose model:",
+        list(model_options.keys())
+    )
+
+    model_path = model_options[selected_model]
+
+    st.write(f"Selected model:")
+    st.code(str(model_path))
+
+    if st.button("Calculate metrics"):
+        with st.spinner("Calculating metrics..."):
+
+            metrics = calculate_accuracy_metrics(model_path)
+
+        st.subheader("Model metrics")
+
+        summary_row = {
+            "model": model_display_name(model_path),
+            "path": selected_model,
+            "best saved score": format_metric_value(
+                parse_model_filename(model_path)[1] * 100
+            ),
+            **{
+                key: format_metric_value(value)
+                for key, value in metrics.items()
+            },
+        }
+
+        st.dataframe(
+            [summary_row],
+            use_container_width=True
+        )
 
 def mistakes():
     path = SAVED_MODELS_DIR
@@ -556,7 +613,7 @@ def accuracy():
             #st.pyplot(plot_best_models_metrics(group_name, metrics_by_model))
             #st.pyplot(plot_epsilon_accuracy_curves(group_name, epsilon_by_model))
             #st.pyplot(plot_epsilon_accuracy_curves(group_name, epsilon_rr_by_model, title="Epsilon RR accuracy by tolerance"))
-            st.pyplot(plot_epsilon_accuracy("LSTM_BASE", epsilon_by_model))
+            #st.pyplot(plot_epsilon_accuracy("LSTM_BASE", epsilon_by_model))
 
         st.session_state.accuracy_statistic = False
 
