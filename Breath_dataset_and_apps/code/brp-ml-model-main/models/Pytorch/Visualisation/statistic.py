@@ -190,6 +190,61 @@ def transition_edtt_f1(model_path):
 
     return f1 * 100
 
+def transition_timing_mae(model_path):
+
+    y_pred, y_true, _, _ = load_model_and_predict(model_path)
+
+    if torch.is_tensor(y_pred):
+        y_pred = y_pred.detach().cpu().tolist()
+
+    if torch.is_tensor(y_true):
+        y_true = y_true.detach().cpu().tolist()
+
+    predicted_transitions = extract_transitions(y_pred)
+    true_transitions = extract_transitions(y_true)
+
+    epsilon = 2
+
+    matched_true = set()
+    transition_errors = []
+
+    for pred_idx, (
+        pred_position,
+        pred_from,
+        pred_to
+    ) in enumerate(predicted_transitions):
+
+        best_true_idx = None
+        best_distance = None
+
+        for true_idx, (
+            true_position,
+            true_from,
+            true_to
+        ) in enumerate(true_transitions):
+
+            if true_idx in matched_true:
+                continue
+
+            if pred_from != true_from or pred_to != true_to:
+                continue
+
+            distance = abs(pred_position - true_position)
+
+            if distance <= epsilon:
+                if best_distance is None or distance < best_distance:
+                    best_distance = distance
+                    best_true_idx = true_idx
+
+        if best_true_idx is not None:
+            matched_true.add(best_true_idx)
+            transition_errors.append(best_distance)
+
+    if not transition_errors:
+        return 0.0
+
+    return sum(transition_errors) / len(transition_errors)
+
 if __name__ == "__main__":
 
     edtt_f1 = transition_edtt_f1("LSTM_BASE_0.8831.pth")

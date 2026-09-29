@@ -29,6 +29,7 @@ from Visualisation.statistic import precision
 from Visualisation.statistic import recall
 from Visualisation.statistic import f_scale
 from Visualisation.statistic import transition_edtt_f1
+from Visualisation.statistic import transition_timing_mae
 
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parents[1]
@@ -98,6 +99,7 @@ def calculate_accuracy_metrics(model_path):
         "epsilon accuracy": with_epsilon_accuracy(model_path_str),
         "transition accuracy": number_of_transitions_accuracy(model_path_str),
         "transition EDTT F1": transition_edtt_f1(model_path_str),
+        "transition timing MAE": transition_timing_mae(model_path_str),
         "cycle accuracy": cycle_accuracy(model_path_str),
     }
 
