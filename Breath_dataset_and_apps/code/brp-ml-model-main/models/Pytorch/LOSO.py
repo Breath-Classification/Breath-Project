@@ -29,7 +29,8 @@ def concatenate_sequences(folder):
 if __name__ == "__main__":
 
     folds_dir = Path("../../data/NewData/sequence/Folds")
-    results_dir = Path("results")
+    # Separate results for the base model from prior LSTM_MIX LOSO runs.
+    results_dir = Path("results/Transformer")
 
     results_dir.mkdir(exist_ok=True)
 
@@ -69,26 +70,62 @@ if __name__ == "__main__":
             )
 
 
+            # results = train_and_predict(
+            #     block_size=30,
+            #     batch_size=32,
+            #     target=0,
+            #     hidden_units=106,
+            #     output_shape=4,
+            #     model_type="LSTM_MIX",
+            #     learning_rate=0.003461279782396843,
+            #     num_epchos=100,
+            #     dropout=0.3875033062276,
+            #     num_layers=2,
+
+            #     lambda_con0=0.45253030622706797,
+            #     lambda_con1=0.7980523096367567,
+            #     lambda_con2=0.4705314248078593,
+            #     lambda_con3=0.9098874037274234,
+
+            #     dataset_type="SequenceBlockWindowDataset",
+            #     loos_type="CrossEntropyLoss",
+
+            #     train_data_path=str(train_file),
+            #     test_data_path=str(test_file),
+            # )
+            '''
+            results = train_and_predict(
+                block_size=1,
+                batch_size=64,
+                target=0,
+                hidden_units=73,
+                output_shape=4,
+                model_type="LSTM_BASE",
+                learning_rate=0.002441189389384508,
+                num_epchos=100,
+                dataset_type="BlockDataset",
+                loos_type="CrossEntropyLoss",
+                optimizer_type="Adam",
+                train_data_path=str(train_file),
+                test_data_path=str(test_file),
+            )
+            '''
             results = train_and_predict(
                 block_size=30,
-                batch_size=32,
+                batch_size=128,
                 target=0,
-                hidden_units=106,
+                hidden_units=111,
                 output_shape=4,
-                model_type="LSTM_MIX",
-                learning_rate=0.003461279782396843,
-                num_epchos=100,
-                dropout=0.3875033062276,
                 num_layers=2,
-
-                lambda_con0=0.45253030622706797,
-                lambda_con1=0.7980523096367567,
-                lambda_con2=0.4705314248078593,
-                lambda_con3=0.9098874037274234,
-
-                dataset_type="SequenceBlockWindowDataset",
+                dropout=0.4716960576304161,
+                nhead=8,
+                dim_feedforward=32,
+                model_type="Transformer",
+                learning_rate=0.00048688420830083614,
+                num_epchos=100,
+                dataset_type="BlockDataset",
                 loos_type="CrossEntropyLoss",
-
+                optimizer_type="Adam",
                 train_data_path=str(train_file),
                 test_data_path=str(test_file),
             )

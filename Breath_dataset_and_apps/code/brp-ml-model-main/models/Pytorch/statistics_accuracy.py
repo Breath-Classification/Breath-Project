@@ -4,7 +4,8 @@ import numpy as np
 from scipy.stats import t
 
 
-results_dir = Path("results")
+# Must match the output directory selected in LOSO.py.
+results_dir = Path("results/Transformer")
 
 
 metrics_names = [
