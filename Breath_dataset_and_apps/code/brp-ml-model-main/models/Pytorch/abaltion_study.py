@@ -31,15 +31,17 @@ if __name__ == "__main__":
     
     result_dict = {}
     metric_names = [
-        "max_test_acc",
-        "max_standard_accuracy",
-        "max_epsilon_accuracy",
-        "max_transition_accuracy",
-        "max_cycle_accuracy",
-        "min_avg_sizeof_error",
-        "min_avg_position_error",
-        "min_count_error",
-    ]
+    "max_test_acc",
+    "max_standard_accuracy",
+    "max_epsilon_accuracy",
+    "max_transition_accuracy",
+    "max_cycle_accuracy",
+    "transition_edtt_f1",
+    "transition_timing_mae",
+    "min_avg_sizeof_error",
+    "min_avg_position_error",
+    "min_count_error",
+]
     
     
     for c in config:
