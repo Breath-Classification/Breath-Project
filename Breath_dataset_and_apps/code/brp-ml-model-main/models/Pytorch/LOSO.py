@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     folds_dir = Path("../../data/NewData/sequence/Folds")
     # Separate results for the base model from prior LSTM_MIX LOSO runs.
-    results_dir = Path("results/Test2")
+    results_dir = Path("results/Test3")
 
     results_dir.mkdir(exist_ok=True)
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     )
 
 
-    NUM_RUNS = 5
+    NUM_RUNS = 2
 
 
     for fold in folds:
@@ -69,7 +69,7 @@ if __name__ == "__main__":
                 f"\n--- {fold.name} RUN {run}/{NUM_RUNS} ---"
             )
 
-
+            '''
             results = train_and_predict(
                  block_size=30,
                  batch_size=32,
@@ -129,7 +129,7 @@ if __name__ == "__main__":
                 train_data_path=str(train_file),
                 test_data_path=str(test_file),
             )
-            ''' 
+            
 
 
             result_file = (

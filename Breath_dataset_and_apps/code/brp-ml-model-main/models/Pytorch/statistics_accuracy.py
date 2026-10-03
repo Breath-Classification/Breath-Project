@@ -5,14 +5,16 @@ from scipy.stats import t
 
 
 # Must match the output directory selected in LOSO.py.
-results_dir = Path("results/Transformer")
+results_dir = Path("results/Test2")
 
 
 metrics_names = [
     "test_acc",
     "epsilon_accuracy",
-    "transition_accuracy",
-    "cycle_accuracy"
+    "transition_edtt_f1",
+    "cycle_accuracy",
+    "transition_timing_mae"
+
 ]
 
 
