@@ -34,6 +34,12 @@ DEFAULT_BASE_MODEL = ""
 DEFAULT_OUTPUT = None
 STRATEGY = "none"
 DEFAULT_STRATEGIES = "none,majority,isolated,slope,physical,cut"
+NEW_DATA_DIR = DEFAULT_INPUT_DIR
+DEFAULT_MODELS_DIR = NEW_DATA_DIR / "Models"
+DEFAULT_TEST_DATA_DIR = NEW_DATA_DIR / "Test"
+DEFAULT_EVALUATION_DATA_DIR = NEW_DATA_DIR / "sequence"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Evaluate pseudo labelling methods"
@@ -61,6 +67,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--block-size", default=30, type=int)
     parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="cpu")
     parser.add_argument("--test-data-txt", default=None, type=Path)
+    parser.add_argument(
+        "--all-models",
+        action="store_true",
+        help="Run every selected strategy for every .pt model in --models-dir.",
+    )
+    parser.add_argument("--models-dir", default=DEFAULT_MODELS_DIR, type=Path)
+    parser.add_argument("--test-data-dir", default=DEFAULT_TEST_DATA_DIR, type=Path)
+    parser.add_argument("--evaluation-data-dir", default=DEFAULT_EVALUATION_DATA_DIR, type=Path)
     
     return parser.parse_args()
 
@@ -390,8 +404,7 @@ def compare_startegy_accuracy(models, strategies):
         print(f"Strategy: {strategy} Accuracy: {model['accuracy']}")
 
 
-def main() -> None:
-    args = parse_args()
+def evaluate_strategies(args: argparse.Namespace) -> list[dict]:
     strategy_results = run_strategies(args)
     output_results = []
 
@@ -412,13 +425,124 @@ def main() -> None:
                     print(error)
         output_results.append(result)
 
-    if args.output_file is not None:
-        args.output_file.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "results": output_results,
+    return output_results
+
+
+def find_evaluation_file(model_path: Path, evaluation_dir: Path) -> Path:
+    suffix = "_pretrained_sequence.txt"
+    model_name = model_path.stem.lower()
+    files = sorted(evaluation_dir.glob(f"*{suffix}"))
+    exact_matches = [file for file in files if file.name.lower() == f"{model_name}{suffix}"]
+    matches = exact_matches or [file for file in files if file.stem.lower().startswith(model_name)]
+
+    if len(matches) != 1:
+        raise FileNotFoundError(
+            f"Expected one evaluation sequence for {model_path.name} in {evaluation_dir}, found {len(matches)}."
+        )
+
+    return matches[0]
+
+
+def find_source_file(evaluation_file: Path, test_data_dir: Path) -> Path:
+    source_stem = evaluation_file.name.removesuffix("_pretrained_sequence.txt").lower()
+    matches = sorted(
+        file for file in test_data_dir.glob("*.txt") if file.stem.lower() == source_stem
+    )
+
+    if len(matches) != 1:
+        raise FileNotFoundError(
+            f"Expected one source file for {evaluation_file.name} in {test_data_dir}, found {len(matches)}."
+        )
+
+    return matches[0]
+
+
+def print_all_models_summary(model_results: list[dict], strategies: list[str]) -> None:
+    print("\n===== ALL MODELS / ALL STRATEGIES =====")
+    print("Model".ljust(12) + " ".join(strategy.rjust(11) for strategy in strategies))
+
+    for model_result in model_results:
+        if "error" in model_result:
+            print(f"{model_result['model_name']:<12} ERROR: {model_result['error']}")
+            continue
+
+        accuracies = {
+            result["strategy"]: result.get("fine_tuning", {}).get("test_accuracy")
+            for result in model_result["results"]
         }
-        args.output_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        values = [
+            f"{accuracies[strategy] * 100:10.2f}%" if accuracies.get(strategy) is not None else "      ERROR"
+            for strategy in strategies
+        ]
+        print(f"{model_result['model_name']:<12}" + " ".join(values))
+
+
+def evaluate_all_models(args: argparse.Namespace) -> list[dict]:
+    model_paths = sorted(args.models_dir.glob("*.pt"))
+    if not model_paths:
+        raise FileNotFoundError(f"No .pt models found in {args.models_dir}")
+
+    all_results = []
+    for model_path in model_paths:
+        print(f"\n===== {model_path.name} =====")
+        try:
+            evaluation_file = find_evaluation_file(model_path, args.evaluation_data_dir)
+            source_file = find_source_file(evaluation_file, args.test_data_dir)
+            model_args = argparse.Namespace(**vars(args))
+            model_args.filename = source_file
+            model_args.test_data_txt = evaluation_file
+            model_args.model_file = model_path
+            model_args.save_sequences = True
+            model_args.run_fine_tuning = True
+            model_args.sequence_output_dir = args.sequence_output_dir / "all_models" / model_path.stem
+            model_args.layers_dir = args.layers_dir / "all_models" / model_path.stem
+
+            results = evaluate_strategies(model_args)
+            all_results.append(
+                {
+                    "model_name": model_path.stem,
+                    "model_file": str(model_path),
+                    "source_file": str(source_file),
+                    "evaluation_file": str(evaluation_file),
+                    "results": results,
+                }
+            )
+        except (FileNotFoundError, RuntimeError, ValueError) as error:
+            print(f"{model_path.name}: skipped ({error})")
+            all_results.append({"model_name": model_path.stem, "model_file": str(model_path), "error": str(error)})
+
+    return all_results
+
+
+def write_output(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def main() -> None:
+    args = parse_args()
+
+    if args.all_models:
+        model_results = evaluate_all_models(args)
+        output_file = args.output_file or args.sequence_output_dir / "all_models" / "fine_tuning_summary.json"
+        write_output(
+            output_file,
+            {
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "strategies": parse_strategies(args),
+                "models": model_results,
+            },
+        )
+        print_all_models_summary(model_results, parse_strategies(args))
+        print(f"\nFull results saved to: {output_file}")
+        return
+
+    output_results = evaluate_strategies(args)
+    if args.output_file is not None:
+        write_output(
+            args.output_file,
+            {"created_at": datetime.now(timezone.utc).isoformat(), "results": output_results},
+        )
 
 
 if __name__ == "__main__":

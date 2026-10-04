@@ -13,9 +13,10 @@ sys.path.append(str(PYTORCH_DIR))
 from data_loader import create_dataloaders # type: ignore
 import torch
 
-BASE_MODEL_PATH = ""
-FINE_TUNED_MODEL_PATH =""
-LABELLED_FILE_PATH = ""
+DATA_DIR = PROJECT_DIR / "data"
+BASE_MODEL_PATH = DATA_DIR / "Models" / "mobile_models" / "LSTMBASE_tens copy.pt"
+FINE_TUNED_MODEL_PATH = DATA_DIR / "NewData" / "Models"
+LABELLED_FILE_PATH = DATA_DIR / "NewData" / "sequence"
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -23,8 +24,18 @@ def parse_args() -> argparse.Namespace:
     )
     
     parser.add_argument("--base_model", default=BASE_MODEL_PATH, type=Path)
-    parser.add_argument("--fine_tuned_model", default=FINE_TUNED_MODEL_PATH, type=Path)
-    parser.add_argument("--labelled_file", default=LABELLED_FILE_PATH, type=Path)
+    parser.add_argument(
+        "--fine_tuned_model",
+        default=FINE_TUNED_MODEL_PATH,
+        type=Path,
+        help="Directory containing fine-tuned .pt models.",
+    )
+    parser.add_argument(
+        "--labelled_file",
+        default=LABELLED_FILE_PATH,
+        type=Path,
+        help="Directory containing *_pretrained_sequence.txt test files.",
+    )
     
     return parser.parse_args()
 
@@ -75,8 +86,8 @@ def calculate_statistics(base_accuracies, fine_accuracies):
     fine_mean = np.mean(fine_accuracies)
 
     # Standard deviation
-    base_std = np.std(base_accuracies, ddof=1)
-    fine_std = np.std(fine_accuracies, ddof=1)
+    base_std = np.std(base_accuracies, ddof=1) if len(base_accuracies) > 1 else 0.0
+    fine_std = np.std(fine_accuracies, ddof=1) if len(fine_accuracies) > 1 else 0.0
 
     # Improvement for each run, in percentage points
     improvements = (fine_accuracies - base_accuracies) * 100
@@ -91,6 +102,23 @@ def calculate_statistics(base_accuracies, fine_accuracies):
         "fine_std": fine_std * 100,
         "mean_improvement": mean_improvement,
     }
+
+
+def find_test_file(model_path: Path, test_dir: Path) -> Path:
+    """Return the NewData sequence file belonging to a fine-tuned model."""
+    model_name = model_path.stem.lower()
+    matches = sorted(
+        test_file
+        for test_file in test_dir.glob("*_pretrained_sequence.txt")
+        if test_file.stem.lower().startswith(model_name)
+    )
+
+    if len(matches) != 1:
+        raise FileNotFoundError(
+            f"Expected one test file for {model_path.name} in {test_dir}, found {len(matches)}."
+        )
+
+    return matches[0]
 
 def evaluate_model(model, test_loader, device: torch.device | None = None):
     if device is None:
@@ -125,46 +153,33 @@ def evaluate_model(model, test_loader, device: torch.device | None = None):
     }
     
 def main():
-    
     args = parse_args()
-    
-    _, test_loader = load_dataloaders(args.labelled_file)
+    fine_model_paths = sorted(args.fine_tuned_model.glob("*.pt"))
 
-    base_model_paths = [
-        "path/to/baseline_1.pt",
-        "path/to/baseline_2.pt",
-        "path/to/baseline_3.pt",
-        "path/to/baseline_4.pt",
-        "path/to/baseline_5.pt",
-    ]
+    if not fine_model_paths:
+        raise FileNotFoundError(f"No fine-tuned .pt models found in {args.fine_tuned_model}")
 
-    fine_model_paths = [
-        "path/to/fine_1.pt",
-        "path/to/fine_2.pt",
-        "path/to/fine_3.pt",
-        "path/to/fine_4.pt",
-        "path/to/fine_5.pt",
-    ]
+    # Saved LSTM TorchScript models create their hidden state on CPU internally.
+    # Evaluating on CUDA would therefore mix CUDA inputs with CPU hidden tensors.
+    device = torch.device("cpu")
+    base_model = load_model(args.base_model, device)
+    print(f"Base model: {args.base_model}")
+    print(f"Fine-tuned models: {args.fine_tuned_model}\n")
 
     base_accuracies = []
     fine_accuracies = []
 
-    for base_path, fine_path in zip(
-        base_model_paths,
-        fine_model_paths
-    ):
-        base_model = load_model(base_path)
-        fine_model = load_model(fine_path)
+    for fine_path in fine_model_paths:
+        try:
+            test_file = find_test_file(fine_path, args.labelled_file)
+            _, test_loader = load_dataloaders(test_file)
+            fine_model = load_model(fine_path, device)
 
-        base_metrics = evaluate_model(
-            base_model,
-            test_loader
-        )
-
-        fine_metrics = evaluate_model(
-            fine_model,
-            test_loader
-        )
+            base_metrics = evaluate_model(base_model, test_loader, device)
+            fine_metrics = evaluate_model(fine_model, test_loader, device)
+        except (FileNotFoundError, RuntimeError, ValueError) as error:
+            print(f"{fine_path.name}: skipped ({error})")
+            continue
 
         base_acc = base_metrics["accuracy"]
         fine_acc = fine_metrics["accuracy"]
@@ -173,47 +188,34 @@ def main():
         fine_accuracies.append(fine_acc)
 
         print(
+            f"{fine_path.name} on {test_file.name}: "
             f"Base: {base_acc * 100:.2f}% | "
             f"Fine: {fine_acc * 100:.2f}% | "
             f"Improvement: {(fine_acc - base_acc) * 100:+.2f} pp"
         )
 
-    # Mean
-    base_mean = np.mean(base_accuracies)
-    fine_mean = np.mean(fine_accuracies)
+    if not base_accuracies:
+        raise RuntimeError("No model could be evaluated.")
 
-    # Standard deviation
-    base_std = np.std(base_accuracies, ddof=1)
-    fine_std = np.std(fine_accuracies, ddof=1)
-
-    # Mean improvement
-    improvements = [
-        (fine - base) * 100
-        for base, fine in zip(
-            base_accuracies,
-            fine_accuracies
-        )
-    ]
-
-    mean_improvement = np.mean(improvements)
+    statistics = calculate_statistics(base_accuracies, fine_accuracies)
 
     print("\n===== FINAL RESULTS =====")
 
     print(
         f"Baseline: "
-        f"{base_mean * 100:.2f} ± "
-        f"{base_std * 100:.2f}%"
+        f"{statistics['base_mean']:.2f} ± "
+        f"{statistics['base_std']:.2f}%"
     )
 
     print(
         f"Fine-tuned: "
-        f"{fine_mean * 100:.2f} ± "
-        f"{fine_std * 100:.2f}%"
+        f"{statistics['fine_mean']:.2f} ± "
+        f"{statistics['fine_std']:.2f}%"
     )
 
     print(
         f"Mean Improvement: "
-        f"{mean_improvement:+.2f} pp"
+        f"{statistics['mean_improvement']:+.2f} pp"
     )
 
 
