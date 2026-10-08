@@ -373,6 +373,7 @@ def config_dataloaders(
     train_data_txt="../../data/pretrained/tens_sequence/tens_concatenated.txt",
     test_data_txt="../../data/pretrained/tens_sequence/tens_test.txt",
     #test_data_txt="../../data/NewData/sequence/concatenated.txt",
+    #test_data_txt="../../data/NewData/sequence_WDP/concatenated.txt",
 ):
     data_transform = transforms.Compose([
             transforms.Resize((64, 64)),
